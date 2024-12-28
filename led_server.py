@@ -28,10 +28,13 @@ def run_animation(name):
     try:
         app.logger.info(f'Running animation: {name}')
         if name == 'red':
+            controller.stop_animation = True
             controller.colorWipe(Color(255, 0, 0))
         elif name == 'green':
+            controller.stop_animation = True
             controller.colorWipe(Color(0, 255, 0))
         elif name == 'blue':
+            controller.stop_animation = True
             controller.colorWipe(Color(0, 0, 255))
         elif name == 'rainbow':
             controller.start_animation(controller.rainbow)
@@ -39,8 +42,6 @@ def run_animation(name):
             controller.start_animation(controller.fire_effect)
         elif name == 'rainbow_cycle':
             controller.start_animation(controller.rainbowCycle)
-        elif name == 'theater_chase':
-            controller.start_animation(controller.theaterChase, Color(127, 127, 127))
         elif name == 'theater_chase_rainbow':
             controller.start_animation(controller.theaterChaseRainbow)
         elif name == 'stop':
