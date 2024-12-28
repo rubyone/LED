@@ -216,6 +216,11 @@ class LEDController:
             raise ValueError("Brightness must be between 0 and 255")
         self.strip.setBrightness(brightness)
         self.strip.show()
+    
+    def turn_off(self):
+        """Turn off the LED strip"""
+        self.strip.setBrightness(0)
+        self.strip.show()
 
 class LEDMenu:
     def __init__(self, controller):

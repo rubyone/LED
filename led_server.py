@@ -45,6 +45,8 @@ def run_animation(name):
             controller.start_animation(controller.theaterChaseRainbow)
         elif name == 'stop':
             controller.stop_animation = True
+        elif name == 'turn_off':
+            controller.turn_off()
         return jsonify({'status': 'success'})
     except Exception as e:
         app.logger.error(f'Error running animation {name}: {str(e)}')
