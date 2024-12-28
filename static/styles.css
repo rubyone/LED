@@ -27,6 +27,7 @@ h1 {
 }
 
 h2 {
+    text-align: center;
     font-size: 1.2rem;
     margin-bottom: 1rem;
 }
@@ -124,16 +125,50 @@ h2 {
 }
 
 /* Button Colors */
-.red { background: linear-gradient(45deg, #ff0000, #ff6b6b); }
-.green { background: linear-gradient(45deg, #00ff00, #51cf66); }
-.blue { background: linear-gradient(45deg, #0000ff, #339af0); }
-.rainbow { background: linear-gradient(45deg, #fb0094, #00f, #0f0, #ff0, #f00); }
-.fire { background: linear-gradient(45deg, #ff4400, #ff8800); }
-.chase { background: linear-gradient(45deg, #666, #999); }
-.chase-rainbow { background: linear-gradient(45deg, #fb0094, #00f, #0f0); }
-.stop { background: linear-gradient(45deg, #ff0059, #ff3333); }
-.power { background: linear-gradient(45deg, #444, #666); }
+.red { color: #ff0000; }
+.green { color: #00ff00; }
+.blue { color: #0000ff; }
+.rainbow { 
+    background: linear-gradient(90deg, rgba(255,0,0,1) 0%, rgba(255,154,0,1) 10%, rgba(208,222,33,1) 20%, rgba(79,220,74,1) 30%, rgba(63,218,216,1) 40%, rgba(47,201,226,1) 50%, rgba(28,127,238,1) 60%, rgba(95,21,242,1) 70%, rgba(186,12,248,1) 80%, rgba(251,7,217,1) 90%, rgba(255,0,0,1) 100%);    -webkit-text-fill-color: transparent; 
+    -webkit-background-clip: text;  
+ }
+.fire { 
+    background: linear-gradient(90deg, #ff4400, #ff8800);
+    -webkit-text-fill-color: transparent; 
+    -webkit-background-clip: text;  
+ }
+.chase-rainbow {  
+    background: linear-gradient(90deg, #fb0094, #00f, #0f0);
+    -webkit-text-fill-color: transparent; 
+    -webkit-background-clip: text;  
+}
+.stop { 
+    background: linear-gradient(90deg, #ff0059, #ff3333);
+    -webkit-text-fill-color: transparent; 
+    -webkit-background-clip: text;  
+}
+.on { 
+    background: linear-gradient(90deg, #00ff00, #51cf66);
+    -webkit-text-fill-color: transparent; 
+    -webkit-background-clip: text;  
+}
 
+.off { 
+    background: linear-gradient(90deg, #ff0059, #ff3333);
+    -webkit-text-fill-color: transparent; 
+    -webkit-background-clip: text;  
+}
+
+/* Active state classes */
+.control-btn.active.red { background: linear-gradient(45deg, #ff0000, #ff6b6b); color:white }
+.control-btn.active.green { background: linear-gradient(45deg, #3caa3c, #51cf66); color:white }
+.control-btn.active.blue { background: linear-gradient(45deg, #0000ff, #339af0); color:white }
+.control-btn.active.rainbow { background: linear-gradient(45deg, #fb0094, #00f, #0f0, #ff0, #f00); -webkit-text-fill-color: white;}
+.control-btn.active.fire { background: linear-gradient(45deg, #ff4400, #ff8800); -webkit-text-fill-color:white }
+.control-btn.active.chase-rainbow { background: linear-gradient(45deg, #fb0094, #00f, #0f0); -webkit-text-fill-color:white }
+.control-btn.active.stop { background: red;     -webkit-text-fill-color: white;}
+.control-btn.active.on {     background: linear-gradient(90deg, #00ff00, #51cf66); -webkit-text-fill-color:white }
+.control-btn.active.off { background: linear-gradient(45deg, #ff0059, #ff3333); -webkit-text-fill-color:white }
 /* Control Bar */
 .control-bar {
     position: fixed;

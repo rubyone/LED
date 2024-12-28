@@ -38,7 +38,6 @@
                         <button class="control-btn rainbow" onclick="runAnimation('rainbow')">Rainbow</button>
                         <button class="control-btn fire" onclick="runAnimation('fire')">Fire</button>
                         <button class="control-btn rainbow" onclick="runAnimation('rainbow_cycle')">Rainbow Cycle</button>
-                        <button class="control-btn chase" onclick="runAnimation('theater_chase')">Theater Chase</button>
                         <button class="control-btn chase-rainbow" onclick="runAnimation('theater_chase_rainbow')">Chase Rainbow</button>
                     </div>
                 </div>
@@ -48,8 +47,8 @@
         <!-- Control Bar -->
         <div class="control-bar">
             <button class="control-btn stop" onclick="runAnimation('stop')">Stop</button>
-            <button class="control-btn power" onclick="runAnimation('turn_off')">Off</button>
-            <button class="control-btn power" onclick="runAnimation('turn_on')">On</button>
+            <button class="control-btn off" onclick="runAnimation('turn_off')">Off</button>
+            <button class="control-btn on" onclick="runAnimation('turn_on')">On</button>
         </div>
     </div>
 
@@ -57,16 +56,34 @@
         function runAnimation(name) {
             console.log(name);
             
+            // Remove active class from all buttons
+            document.querySelectorAll('.control-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to clicked button
+            const clickedButton = event.currentTarget;
+            clickedButton.classList.add('active');
+            
+            // // Special handling for stop and power buttons
+            // if (name === 'stop' || name === 'turn_off') {
+            //     document.querySelectorAll('.control-btn:not(.stop):not(.power)').forEach(btn => {
+            //         btn.classList.remove('active');
+            //     });
+            // }
+            
             fetch(`/api/animation/${name}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'error') {
                         alert('Error: ' + data.message);
+                        clickedButton.classList.remove('active');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     alert('Error running animation');
+                    clickedButton.classList.remove('active');
                 });
         }
 
@@ -96,7 +113,6 @@
                     });
             }
         });
-
     </script>
 </body>
 </html> 

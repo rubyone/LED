@@ -95,17 +95,6 @@ class LEDController:
             self.strip.show()
             time.sleep(wait_ms / 1000.0)
 
-    def theaterChase(self, color, wait_ms=50):
-        """Movie theater light style chaser animation."""
-        while not self.stop_animation:
-            for q in range(3):
-                for i in range(0, self.strip.numPixels(), 3):
-                    self.strip.setPixelColor(i + q, color)
-                self.strip.show()
-                time.sleep(wait_ms / 1000.0)
-                for i in range(0, self.strip.numPixels(), 3):
-                    self.strip.setPixelColor(i + q, 0)
-
     def rainbow(self, wait_ms=20):
         """Draw rainbow that fades across all pixels at once."""
         j = 0
