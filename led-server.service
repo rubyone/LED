@@ -1,0 +1,15 @@
+[Unit]
+Description=LED Control Web Server
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/LED
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /home/pi/LED/led_server.py
+Restart=always
+StandardOutput=append:/var/log/led-server.log
+StandardError=append:/var/log/led-server.error.log
+
+[Install]
+WantedBy=multi-user.target 

@@ -1,0 +1,19 @@
+/var/log/led-server.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 644 pi pi
+}
+
+/var/log/led-server.error.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 644 pi pi
+} 
