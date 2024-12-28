@@ -7,6 +7,7 @@
 import sys
 import traceback
 import threading
+from queue import Queue
 
 # sys.path.append(os.path.realpath('.'))
 
@@ -109,6 +110,8 @@ class LEDController:
         self.strip.begin()
         self.stop_animation = False
         self.last_led_states = [(0, 0, 0)] * led_count
+        self.animation_thread = None
+        self.animation_queue = Queue()
 
     def wheel(self, pos):
         """Generate rainbow colors across 0-255 positions."""
@@ -196,17 +199,18 @@ class LEDController:
 
     def start_animation(self, animation_func, *args, **kwargs):
         """Safely start and control an animation"""
-        self.stop_animation = False
-        input_thread = threading.Thread(target=self.check_for_quit, daemon=True)
-        input_thread.start()
+        self.stop_animation = True
+        if self.animation_thread and self.animation_thread.is_alive():
+            self.animation_thread.join()
         
-        try:
-            animation_func(*args, **kwargs)
-        except KeyboardInterrupt:
-            pass
-        finally:
-            self.stop_animation = True
-            input_thread.join(timeout=1)
+        self.stop_animation = False
+        self.animation_thread = threading.Thread(
+            target=animation_func,
+            args=args,
+            kwargs=kwargs,
+            daemon=True
+        )
+        self.animation_thread.start()
 
     # Add other LED control methods from the original code
     def check_for_quit(self):

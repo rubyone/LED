@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LED Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .button-group {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .static-colors button {
+            width: 120px;
+        }
+        .red { background-color: #ff6b6b; }
+        .green { background-color: #51cf66; }
+        .blue { background-color: #339af0; }
+        .animation { background-color: #845ef7; color: white; }
+        .stop { background-color: #f06595; color: white; }
+    </style>
+</head>
+<body>
+    <h1>LED Control Panel</h1>
+    
+    <div class="button-group">
+        <h2>Static Colors</h2>
+        <div class="static-colors">
+            <button class="red" onclick="runAnimation('red')">Red</button>
+            <button class="green" onclick="runAnimation('green')">Green</button>
+            <button class="blue" onclick="runAnimation('blue')">Blue</button>
+        </div>
+    </div>
+
+    <div class="button-group">
+        <h2>Animations</h2>
+        <button class="animation" onclick="runAnimation('rainbow')">Rainbow</button>
+        <button class="animation" onclick="runAnimation('rainbow_cycle')">Rainbow Cycle</button>
+        <button class="animation" onclick="runAnimation('theater_chase')">Theater Chase</button>
+        <button class="animation" onclick="runAnimation('theater_chase_rainbow')">Theater Chase Rainbow</button>
+    </div>
+
+    <div class="button-group">
+        <button class="stop" onclick="runAnimation('stop')">Stop Animation</button>
+    </div>
+
+    <script>
+        function runAnimation(name) {
+            fetch(`/api/animation/${name}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'error') {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error running animation');
+                });
+        }
+    </script>
+</body>
+</html> 
