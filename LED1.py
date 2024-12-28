@@ -63,8 +63,8 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
 
 # Move the class definitions before the main function
 class LEDController:
-    def __init__(self, led_count=41, led_pin=18, led_freq_hz=800000, led_dma=10, 
-                 led_brightness=255, led_invert=False, led_channel=0):
+    def __init__(self, led_count=LED_COUNT, led_pin=LED_PIN, led_freq_hz=LED_FREQ_HZ, led_dma=LED_DMA, 
+                 led_brightness=LED_BRIGHTNESS, led_invert=LED_INVERT, led_channel=LED_CHANNEL): 
         self.strip = Adafruit_NeoPixel(led_count, led_pin, led_freq_hz, led_dma, 
                                       led_invert, led_brightness, led_channel)
         self.strip.begin()
