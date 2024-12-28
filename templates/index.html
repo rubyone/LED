@@ -4,6 +4,8 @@
     <title>LED Control Panel</title>
     <style>
         body {
+            color: white;
+            background-color: black;
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
@@ -32,6 +34,12 @@
 </head>
 <body>
     <h1>LED Control Panel</h1>
+
+    <div class="brightness-control">
+        <h2>Brightness Control</h2>
+        <input type="range" min="0" max="255" value="255" class="brightness-slider" id="brightnessSlider">
+        <div>Current Brightness: <span id="brightnessValue">255</span></div>
+    </div>
     
     <div class="button-group">
         <h2>Static Colors</h2>
@@ -68,6 +76,33 @@
                     alert('Error running animation');
                 });
         }
+
+        const brightnessSlider = document.getElementById('brightnessSlider');
+        const brightnessValue = document.getElementById('brightnessValue');
+        
+        // Add throttling for smoother performance
+        let lastUpdate = 0;
+        brightnessSlider.addEventListener('input', (e) => {
+            const now = Date.now();
+            const value = e.target.value;
+            brightnessValue.textContent = value;
+            
+            // Only update if 50ms have passed since last update
+            if (now - lastUpdate > 50) {
+                lastUpdate = now;
+                fetch(`/api/brightness/${value}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'error') {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error setting brightness');
+                    });
+            }
+        });
     </script>
 </body>
 </html> 

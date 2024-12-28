@@ -32,5 +32,13 @@ def run_animation(name):
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
+@app.route('/api/brightness/<int:level>')
+def set_brightness(level):
+    try:
+        controller.set_brightness(level)
+        return jsonify({'status': 'success', 'brightness': level})
+    except ValueError as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000) 

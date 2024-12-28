@@ -59,47 +59,6 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
     if iteration == total:
         print()
 
-last_led_states = [(0, 0, 0)] * LED_COUNT  # Store RGB values for each LED
-
-def save_led_states(strip):
-    """Save the current LED colors to the global state"""
-    global last_led_states
-    for i in range(strip.numPixels()):
-        color = strip.getPixelColor(i)
-        # Convert 24-bit color to RGB components
-        r = (color >> 16) & 0xFF
-        g = (color >> 8) & 0xFF
-        b = color & 0xFF
-        last_led_states[i] = (r, g, b)
-
-def restore_led_states(strip):
-    """Restore the saved LED colors"""
-    for i in range(strip.numPixels()):
-        r, g, b = last_led_states[i]
-        strip.setPixelColor(i, Color(r, g, b))
-    strip.show()
-
-def check_for_quit():
-    global stop_animation
-    while True:
-        user_input = input("Enter 'q' to stop the animation: ")
-        if user_input.strip().lower() == 'q':
-            stop_animation = True
-            break
-
-# Modify the reset function to optionally preserve the last state
-def reset(strip, wait_ms=50, preserve_state=False):
-    if not preserve_state:
-        items = list(range(strip.numPixels()))
-        l = len(items)
-        for i in range(strip.numPixels()):
-            color = Color(0, 0, 0)
-            printProgressBar(i + 1, l, prefix='Reset Animation ::', suffix='Reset Complete', autosize=True)
-            strip.setPixelColor(i, color)
-            strip.show()
-            time.sleep(wait_ms / 1000.0)
-    else:
-        restore_led_states(strip)
 
 # Move the class definitions before the main function
 class LEDController:
@@ -127,10 +86,10 @@ class LEDController:
     def colorWipe(self, color, wait_ms=50):
         """Wipe color across display a pixel at a time."""
         for i in range(self.strip.numPixels()):
-            printProgressBar(i + 1, self.strip.numPixels(), 
-                           prefix='Animation Progress::', 
-                           suffix='Animation Complete', 
-                           autosize=True)
+            # printProgressBar(i + 1, self.strip.numPixels(), 
+            #                prefix='Animation Progress::', 
+            #                suffix='Animation Complete', 
+            #                autosize=True)
             self.strip.setPixelColor(i, color)
             self.strip.show()
             time.sleep(wait_ms / 1000.0)
@@ -227,6 +186,13 @@ class LEDController:
                 self.strip.show()
                 time.sleep(wait_ms / 1000.0)
 
+    def set_brightness(self, brightness):
+        """Set the brightness level (0-255)"""
+        if not 0 <= brightness <= 255:
+            raise ValueError("Brightness must be between 0 and 255")
+        self.strip.setBrightness(brightness)
+        self.strip.show()
+
 class LEDMenu:
     def __init__(self, controller):
         self.controller = controller
@@ -235,13 +201,15 @@ class LEDMenu:
                 'Red': lambda: self.controller.colorWipe(Color(255, 0, 0)),
                 'Green': lambda: self.controller.colorWipe(Color(0, 255, 0)),
                 'Blue': lambda: self.controller.colorWipe(Color(0, 0, 255))
-                # 'Custom': self.custom_color
             },
             'Animations': {
                 'Rainbow': lambda: self.controller.start_animation(self.controller.rainbow),
                 'Rainbow Cycle': lambda: self.controller.start_animation(self.controller.rainbowCycle),
                 'Theater Chase': lambda: self.controller.start_animation(self.controller.theaterChase, Color(127, 127, 127)),
                 'Theater Chase Rainbow': lambda: self.controller.start_animation(self.controller.theaterChaseRainbow)
+            },
+            'Settings': {
+                'Set Brightness': self.set_brightness
             }
         }
 
@@ -269,6 +237,14 @@ class LEDMenu:
             
             if option != 'Back':
                 self.menu_options[category][option]()
+
+    def set_brightness(self):
+        try:
+            brightness = int(input("Enter brightness (0-255): ").strip())
+            self.controller.set_brightness(brightness)
+            print(f"Brightness set to {brightness}")
+        except ValueError as e:
+            print(f"Invalid input: {e}")
 
 # Then define the main function
 def main():
