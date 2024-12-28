@@ -8,6 +8,7 @@ import sys
 import traceback
 import threading
 from queue import Queue
+import random
 
 # sys.path.append(os.path.realpath('.'))
 
@@ -138,6 +139,29 @@ class LEDController:
                 for i in range(0, self.strip.numPixels(), 3):
                     self.strip.setPixelColor(i + q, 0)
             j = (j + 1) % 256
+
+    def breathe(self, color, speed_ms=20):
+        """Breathing effect that smoothly fades in and out"""
+        while not self.stop_animation:
+            # Fade in
+            for brightness in range(0, 255, 2):
+                self.strip.setBrightness(brightness)
+                self.colorWipe(color, wait_ms=0)
+                time.sleep(speed_ms/1000.0)
+            # Fade out
+            for brightness in range(255, 0, -2):
+                self.strip.setBrightness(brightness)
+                self.colorWipe(color, wait_ms=0)
+                time.sleep(speed_ms/1000.0)
+
+    def fire_effect(self):
+        """Simulate fire effect"""
+        while not self.stop_animation:
+            for i in range(self.strip.numPixels()):
+                flicker = random.randint(0, 55)
+                self.strip.setPixelColor(i, Color(255 - flicker, 35, 0))
+            self.strip.show()
+            time.sleep(random.uniform(0.05, 0.2))
 
     def get_color_input(self):
         """Get and validate RGB color input from user"""

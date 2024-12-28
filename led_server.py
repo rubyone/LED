@@ -35,6 +35,8 @@ def run_animation(name):
             controller.colorWipe(Color(0, 0, 255))
         elif name == 'rainbow':
             controller.start_animation(controller.rainbow)
+        elif name == 'fire':
+            controller.start_animation(controller.fire_effect)
         elif name == 'rainbow_cycle':
             controller.start_animation(controller.rainbowCycle)
         elif name == 'theater_chase':
