@@ -1,264 +1,181 @@
+:root {
+    --primary-bg: #1a1a1a;
+    --secondary-bg: #2d2d2d;
+    --text-color: #ffffff;
+    --button-hover: #3d3d3d;
+    --spacing: 1rem;
+}
+
 body {
-    color: white;
-    background-color: black;
-    font-family: Arial, sans-serif;
-    min-height: 100vh;
+    background-color: var(--primary-bg);
+    color: var(--text-color);
+    font-family: 'Arial', sans-serif;
     margin: 0;
-    padding: 20px;
-    padding-bottom: 70px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Make all elements use border-box */
-* {
-    box-sizing: border-box;
-}
-.brightness-slider {
-    width: 100%;
-    height: 20px;
-    background-color: #333;
-    border-radius: 10px;
-    margin: 10px 0 10px 0;
-}
-
-.button-group {
-    margin: 10px 0;
-}
-
-.btn-wrapper {
-    position: relative;
-    width: 180px;
-    height: 45px;
-    margin: 10px;
-}
-
-.btn-wrapper button {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    /* line-height: 48px; */
-    background: #000;
-    text-transform: uppercase;
-    font-size: 16px;
-    letter-spacing: 2px;
-    border: none;
-    cursor: pointer;
     padding: 0;
-    color: rgba(255, 255, 255, 0.2);
-    transition: 0.5s;
-    z-index: 1;
+    min-height: 100vh;
 }
 
-.btn-wrapper::before,
-.btn-wrapper::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    transition: 0.5s;
-}
-
-.btn-wrapper::before {
-    filter: blur(2px);
-}
-
-/* Color-specific gradients */
-.red::before, .red::after {
-    background: linear-gradient(45deg, #ff0000, #ff6b6b);
-    background-size: 400%;
-}
-
-.green::before, .green::after {
-    background: linear-gradient(45deg, #00ff00, #51cf66);
-    background-size: 400%;
-}
-
-.blue::before, .blue::after {
-    background: linear-gradient(45deg, #0000ff, #339af0);
-    background-size: 400%;
-}
-
-.animation::before, .animation::after {
-    background: linear-gradient(45deg, #fb0094, #00f, #0f0, 
-        #ff0, #f00, #fb0094, #00f, #0f0, #ff0, #f00);
-    background-size: 400%;
-}
-
-.stop::before, .stop::after {
-    background: linear-gradient(45deg, #ff0059, #ff3333);
-    background-size: 400%;
-}
-
-.btn-wrapper:hover::before,
-.btn-wrapper:hover::after {
-    opacity: 1;
-    animation: animate 20s linear infinite;
-}
-
-.btn-wrapper:hover button {
-    color: rgba(255, 255, 255, 1);
-}
-
-@keyframes animate {
-    0% {
-        background-position: 0 0;
-    }
-    50% {
-        background-position: 300% 0;
-    }
-    100% {
-        background-position: 0 0;
-    }
-}
-
-/* Rest of your existing styles... */
-
-/* Update static-colors layout */
-.static-colors {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    justify-content: center;
-    margin: 0 auto;
+.container {
     max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
 }
 
-.static-colors .btn-wrapper {
-    flex: 1 1 100%;
-    max-width: 200px;
-}
-
-/* Update animations container */
-.button-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    justify-content: center;
-}
-
-/* Media queries update */
-@media (max-width: 480px) {
-    .btn-wrapper {
-        width: 140px;
-        height: 45px;
-    }
-
-    .btn-wrapper button {
-        font-size: 14px;
-        letter-spacing: 1px;
-    }
-}
-
-#stop-button-group {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    z-index: 100;
-}
-
-/* Adjust headings */
 h1 {
-    margin: 10px 0;
     text-align: center;
+    margin-bottom: 2rem;
 }
 
 h2 {
-    margin: 10px 0;
-    text-align: center;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
 }
 
-/* Update brightness control */
+/* Control Panel Layout */
+.control-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Brightness Section */
+.brightness-section {
+    text-align: center;
+    /* padding: 1rem; */
+    background: var(--secondary-bg);
+    border-radius: 10px;
+    width: 100%;
+}
+
 .brightness-control {
-    max-width: 400px;
-    margin: 10px auto;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .btn-wrapper {
-        width: 150px;
-        height: 40px;
-        margin: 5px;
-    }
-
-    body {
-        padding: 10px;
-        padding-bottom: 60px;
-    }
-}
-
-
-
-  .wrapper {
-    position: relative;
-    height: 20rem;
-    width: 3rem;
-  
-    &::before,
-    &::after {
-      display: block;
-      position: absolute;
-      z-index: 99;
-      color: #fff;
-      width: 100%;
-      text-align: center;
-      font-size: 1.5rem;
-      line-height: 1;
-      padding: .75rem 0;
-      pointer-events: none;
-    }
-  
-    &::before {
-      content: '+';
-    }
-  
-    &::after {
-      content: '-';
-      bottom: 0;
-    }
-  }
-  
-  input[type="range"] {
+.brightness-slider {
     -webkit-appearance: none;
-    background-color: rgba(#fff, .2);
-    position: absolute;
-    top: 50%;
-    left: 50%;
+    width: 100%;
+    height: 20px;
+    background: #444;
+    border-radius: 10px;
     margin: 0;
-    padding: 0;
-    width: 20rem;
-    height: 3.5rem;
-    transform: translate(-50%, -50%) rotate(-90deg);
-    border-radius: 1rem;
-    overflow: hidden;
-    cursor: row-resize;
-    
-    &[step]{
-      background-color: transparent;
-      background-image: repeating-linear-gradient(to right, rgba(#fff, .2), rgba(#fff, .2) calc(12.5% - 1px), #05051a 12.5%);
+}
+
+.brightness-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.brightness-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    background: #eee;
+}
+
+.brightness-value {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Controls Section */
+.controls-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.control-group {
+    background: var(--secondary-bg);
+    padding: 1rem;
+    border-radius: 10px;
+}
+
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
+}
+
+/* Buttons */
+.control-btn {
+    padding: 0.8rem;
+    border: none;
+    border-radius: 5px;
+    color: var(--text-color);
+    background: var(--secondary-bg);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.control-btn:hover {
+    background: var(--button-hover);
+    transform: translateY(-2px);
+}
+
+/* Button Colors */
+.red { background: linear-gradient(45deg, #ff0000, #ff6b6b); }
+.green { background: linear-gradient(45deg, #00ff00, #51cf66); }
+.blue { background: linear-gradient(45deg, #0000ff, #339af0); }
+.rainbow { background: linear-gradient(45deg, #fb0094, #00f, #0f0, #ff0, #f00); }
+.fire { background: linear-gradient(45deg, #ff4400, #ff8800); }
+.chase { background: linear-gradient(45deg, #666, #999); }
+.chase-rainbow { background: linear-gradient(45deg, #fb0094, #00f, #0f0); }
+.stop { background: linear-gradient(45deg, #ff0059, #ff3333); }
+.power { background: linear-gradient(45deg, #444, #666); }
+
+/* Control Bar */
+.control-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    backdrop-filter: blur(10px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .brightness-control {
+        padding: 0.5rem;
     }
-  
-    &::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 0;
-      box-shadow: -20rem 0 0 20rem rgba(#fff, 0.2);
+
+    .brightness-slider {
+        height: 15px;
     }
-  
-    &::-moz-range-thumb {
-      border: none;
-      width: 0;
-      box-shadow: -20rem 0 0 20rem rgba(#fff, 0.2);
+
+    .brightness-slider::-webkit-slider-thumb {
+        width: 20px;
+        height: 20px;
     }
-  }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0.5rem;
+    }
+
+    .button-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .control-btn {
+        padding: 0.6rem;
+        font-size: 0.8rem;
+    }
+}
   
