@@ -21,9 +21,11 @@ ECHO = 24  # GPIO24 (Pin 18)
 
 # Motion detection parameters
 THRESHOLD = 5.0  # Distance change threshold in cm to detect motion
+MIN_DISTANCE = 60.0  # Minimum distance in cm to trigger motion detection
+MAX_DISTANCE = 300.0  # Maximum valid distance in cm
 SAMPLE_INTERVAL = 0.1  # Time between measurements in seconds
 SAMPLES_TO_STABLE = 3  # Number of stable readings needed to confirm no motion
-TIMEOUT_MINUTES = 5  # Time without motion before turning off LEDs
+TIMEOUT_MINUTES = 1  # Time without motion before turning off LEDs
 
 class MotionSensorLED:
 	def __init__(self):
@@ -88,15 +90,20 @@ class MotionSensorLED:
 		previous_distance = None
 		stable_count = 0
 		motion_detected = False
+		last_countdown_display = 0
 
 		print("Motion sensor active. Press Ctrl+C to exit.")
-
+		print(f"Motion detection settings:")
+		print(f"- Minimum distance: {MIN_DISTANCE} cm")
+		print(f"- Change threshold: {THRESHOLD} cm")
+		print(f"- Timeout: {TIMEOUT_MINUTES} minute(s)")
+		print(f"--------------------------------")
 		while True:
 			current_distance = self.distance()
 			current_time = time.time()
 			
-			# Skip invalid readings
-			if current_distance is None:
+			# Skip invalid readings or distances outside our range
+			if current_distance is None or current_distance > MAX_DISTANCE:
 				continue
 
 			# First reading
@@ -107,24 +114,48 @@ class MotionSensorLED:
 			# Calculate change in distance
 			distance_change = abs(current_distance - previous_distance)
 
-			# Check for motion
-			if distance_change > THRESHOLD:
-				if not motion_detected:
-					print(f"Motion detected! Distance changed by {round(distance_change, 2)} cm")
-					print(f"Previous: {previous_distance} cm, Current: {current_distance} cm")
-					motion_detected = True
-					self.last_motion_time = current_time
-					self.turn_on_leds()
-				stable_count = 0
-			else:
-				stable_count += 1
-				if stable_count >= SAMPLES_TO_STABLE and motion_detected:
-					print("Motion stopped")
-					motion_detected = False
+			# Check for motion only if we're within our minimum distance range
+			if current_distance <= MIN_DISTANCE:
+				if distance_change > THRESHOLD:
+					if not motion_detected:
+						print(f"Motion detected at {current_distance}cm!")
+						print(f"Distance changed by {round(distance_change, 2)} cm")
+						print(f"Previous: {previous_distance} cm, Current: {current_distance} cm")
+						motion_detected = True
+						self.last_motion_time = current_time
+						self.turn_on_leds()
+					stable_count = 0
+				else:
+					stable_count += 1
+					if stable_count >= SAMPLES_TO_STABLE and motion_detected:
+						print("Motion stopped")
+						motion_detected = False
+						print(f"--------------------------------")
+			elif motion_detected:
+				print(f"Object moved out of range (Current distance: {round(current_distance, 2)} cm)")
+				motion_detected = False
+				print(f"--------------------------------")
+			# Display countdown if LEDs are on
+			if self.leds_on:
+				time_elapsed = current_time - self.last_motion_time
+				time_remaining = (TIMEOUT_MINUTES * 60) - time_elapsed
+				
+				if (time_remaining <= 60 and current_time - last_countdown_display >= 1) or \
+				   (time_remaining > 60 and current_time - last_countdown_display >= 60):
+					
+					minutes = int(time_remaining // 60)
+					seconds = int(time_remaining % 60)
+					
+					if minutes > 0:
+						print(f"\rLEDs will turn off in: {minutes}m {seconds}s", end='', flush=True)
+					else:
+						print(f"\rLEDs will turn off in: {seconds}s", end='', flush=True)
+						
+					last_countdown_display = current_time
 
-			# Check if we should turn off LEDs due to inactivity
-			if current_time - self.last_motion_time > (TIMEOUT_MINUTES * 60):
-				self.turn_off_leds()
+				if time_remaining <= 0:
+					print("\nTimeout reached - turning off LEDs")
+					self.turn_off_leds()
 
 			previous_distance = current_distance
 			time.sleep(SAMPLE_INTERVAL)
