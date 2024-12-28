@@ -1,7 +1,12 @@
 # LED Strip Web Controller
 
-A web-based controller for WS281x LED strips using Raspberry Pi. 
+A web-based controller for WS281x LED strips using Raspberry Pi.
 Control your LED animations through an easy-to-use python flask web interface.
+
+```sh
+# Remove all ._ files before committing
+find . -name "._*" -delete         
+```
 
 ## Features
 

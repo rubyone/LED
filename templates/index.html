@@ -4,61 +4,52 @@
     <title>LED Control Panel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="stylesheet" href="../static/styles.css">
 </head>
 <body>
-    <h1>LED Control Panel</h1>
+    <div class="container">
+        <h1>LED Control Panel</h1>
 
-    <div class="brightness-control">
-        <h2>Brightness</h2>
-        <div class="wrapper">
-            <input type="range" min="0" max="255" value="255" class="brightness-slider" id="brightnessSlider">
-        </div>
-        <div><span id="brightnessValue">255</span></div>
-    </div>
-    
-    <div class="button-group">
-        <h2>Static Colors</h2>
-        <div class="static-colors">
-            <div class="btn-wrapper red">
-                <button onclick="runAnimation('red')">Red</button>
-            </div>
-            <div class="btn-wrapper green">
-                <button onclick="runAnimation('green')">Green</button>
-            </div>
-            <div class="btn-wrapper blue">
-                <button onclick="runAnimation('blue')">Blue</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="button-group">
-        <h2>Animations</h2>
-        <div class="static-colors">
-
-            <div class="btn-wrapper animation">
-                <button onclick="runAnimation('rainbow')">Rainbow</button>
-            </div>
-            <div class="btn-wrapper animation">
-                <button onclick="runAnimation('fire')">Fire</button>
-            </div>
-            <div class="btn-wrapper animation">
-                <button onclick="runAnimation('rainbow_cycle')">Rainbow Cycle</button>
-            </div>
-            <div class="btn-wrapper animation">
-                <button onclick="runAnimation('theater_chase')">Theater Chase</button>
-            </div>
-            <div class="btn-wrapper animation">
-                <button onclick="runAnimation('theater_chase_rainbow')">Theater Chase Rainbow</button>
+        <div class="control-panel">
+            <!-- Brightness Section -->
+            <div class="panel-section brightness-section">
+                <h2>Brightness</h2>
+                <div class="brightness-control">
+                    <input type="range" min="0" max="255" value="255" class="brightness-slider" id="brightnessSlider">
+                    <div class="brightness-value"><span id="brightnessValue">255</span></div>
+                </div>
             </div>
 
+            <!-- Colors and Animations Section -->
+            <div class="panel-section controls-section">
+                <!-- Static Colors -->
+                <div class="control-group">
+                    <h2>Colors</h2>
+                    <div class="button-grid">
+                        <button class="control-btn red" onclick="runAnimation('red')">Red</button>
+                        <button class="control-btn green" onclick="runAnimation('green')">Green</button>
+                        <button class="control-btn blue" onclick="runAnimation('blue')">Blue</button>
+                    </div>
+                </div>
+
+                <!-- Animations -->
+                <div class="control-group">
+                    <h2>Animations</h2>
+                    <div class="button-grid">
+                        <button class="control-btn rainbow" onclick="runAnimation('rainbow')">Rainbow</button>
+                        <button class="control-btn fire" onclick="runAnimation('fire')">Fire</button>
+                        <button class="control-btn rainbow" onclick="runAnimation('rainbow_cycle')">Rainbow Cycle</button>
+                        <button class="control-btn chase" onclick="runAnimation('theater_chase')">Theater Chase</button>
+                        <button class="control-btn chase-rainbow" onclick="runAnimation('theater_chase_rainbow')">Chase Rainbow</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-    </div>
-
-    <div class="button-group" id="stop-button-group">
-        <div class="btn-wrapper stop">
-            <button onclick="runAnimation('stop')">Stop Animation</button>
+        <!-- Control Bar -->
+        <div class="control-bar">
+            <button class="control-btn stop" onclick="runAnimation('stop')">Stop</button>
+            <button class="control-btn power" onclick="runAnimation('turn_off')">Off</button>
+            <button class="control-btn power" onclick="runAnimation('turn_on')">On</button>
         </div>
     </div>
 
@@ -105,6 +96,7 @@
                     });
             }
         });
+
     </script>
 </body>
 </html> 
