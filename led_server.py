@@ -63,5 +63,19 @@ def set_brightness(level):
     except ValueError as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
+@app.route('/api/animation/custom_color/<hex_color>')
+def set_custom_color(hex_color):
+    try:
+        controller.set_custom_color(hex_color)
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
+@app.route('/api/leds')
+def get_leds():
+    app.logger.info(f'Getting LEDs: {controller.get_leds()}')
+    return jsonify({'status': 'success', 'leds': controller.get_leds()})
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000) 

@@ -211,6 +211,15 @@ class LEDController:
         self.strip.setBrightness(0)
         self.strip.show()
 
+    def get_leds(self):
+        """Get the number of LEDs"""
+        return self.strip.numPixels()
+    
+    def set_custom_color(self, hex_color):
+        """Set the custom color"""
+        self.strip.setPixelColor(0, Color(hex_color))
+        self.strip.show()
+
 class LEDMenu:
     def __init__(self, controller):
         self.controller = controller

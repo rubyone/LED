@@ -2,6 +2,94 @@ let isLEDOn = true; // Track LED strip state
 let lastActiveAnimation = null; // Track last active animation button
 let lastAnimationName = null; // Track the name of the last animation
 let isPlaying = true; // Add this to track play/pause state
+let NUM_LEDS = null; // Adjust this to match your actual LED strip length
+let ledStates = null;
+
+// //send leds count command to api
+// function sendLedsCount() {
+//     fetch('/api/leds')
+//         .then(response => response.json())
+//         .then(data => {
+//             if (data.status === 'error') {
+//                 console.error('Error:', data.message);
+//                 return;
+//             }
+//             console.log('Number of LEDs:', data.leds);
+//             // Update NUM_LEDS variable
+//             NUM_LEDS = data.leds;
+//             // Update ledStates array
+//             ledStates = new Array(data.leds).fill({ r: 0, g: 0, b: 0 });
+//             // Initialize LED strip with correct count
+//             initializeLEDStrip();
+//         })
+//         .catch(error => {
+//             console.error('Error:', error);
+//             alert('Error getting LED count');
+//         });
+// }
+// sendLedsCount();
+
+
+function hexToRGB(hex) {
+    // Remove the # if present
+    hex = hex.replace('#', '');
+    
+    // Convert to RGB values
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    return { r, g, b };
+}
+
+function initializeLEDStrip() {
+    const ledStrip = document.getElementById('ledStrip');
+    ledStrip.innerHTML = ''; // Clear existing LEDs
+    
+    // Create LED elements
+    for (let i = 0; i < NUM_LEDS; i++) {
+        const led = document.createElement('div');
+        led.className = 'led';
+        led.id = `led-${i}`;
+        ledStrip.appendChild(led);
+    }
+}
+
+function updateLEDDisplay() {
+    ledStates.forEach((state, index) => {
+        const led = document.getElementById(`led-${index}`);
+        if (led) {
+            led.style.backgroundColor = `rgb(${state.r}, ${state.g}, ${state.b})`;
+            // Adjust brightness
+            const brightness = parseInt(document.getElementById('brightnessSlider').value);
+            led.style.opacity = brightness / 255;
+        }
+    });
+}
+
+function setCustomColor() {
+    const colorPicker = document.getElementById('colorPicker');
+    const hexColor = colorPicker.value;
+    const rgb = hexToRGB(hexColor);
+    
+    // Update all LEDs to the selected color
+    ledStates = ledStates.map(() => rgb);
+    updateLEDDisplay();
+    
+    // Send the color to the API
+    fetch(`/api/animation/custom_color/${hexColor.substring(1)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'error') {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error setting custom color');
+        });
+}
+
 
 function runAnimation(name) {
     console.log(name);
@@ -52,6 +140,9 @@ function runAnimation(name) {
         document.querySelector('.control-btn.turn_off').classList.add('active');
         document.querySelector('.control-btn.turn_on').classList.remove('active');
         
+        ledStates = ledStates.map(() => ({ r: 0, g: 0, b: 0 }));
+        updateLEDDisplay();
+
     } else if (name === 'turn_on') {
         isLEDOn = true;
         // Restore brightness to previous value
@@ -131,6 +222,19 @@ function runAnimation(name) {
         }
     }
     
+    // Handle color updates for the LED preview
+    if (name === 'red') {
+        ledStates = ledStates.map(() => ({ r: 255, g: 0, b: 0 }));
+        updateLEDDisplay();
+    } else if (name === 'green') {
+        ledStates = ledStates.map(() => ({ r: 0, g: 255, b: 0 }));
+        updateLEDDisplay();
+    } else if (name === 'blue') {
+        ledStates = ledStates.map(() => ({ r: 0, g: 0, b: 255 }));
+        updateLEDDisplay();
+    }
+    
+    // Send animation command to API
     fetch(`/api/animation/${name}`)
         .then(response => response.json())
         .then(data => {
@@ -152,6 +256,7 @@ function runAnimation(name) {
                 lastAnimationName = null;
             }
         });
+        
 }
 
 // Brightness control
@@ -182,50 +287,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         }
     });
-});
 
-function hexToRGB(hex) {
-    // Remove '#' if present
-    hex = hex.replace(/^#/, '');
+    // Move LED initialization after getting the count
+    fetch('/api/leds') 
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'error') {
+                console.error('Error:', data.message);
+                return;
+            }
+            console.log('Number of LEDs:', data.leds);
+            // Update NUM_LEDS variable
+            NUM_LEDS = data.leds;
+            // Update ledStates array
+            ledStates = new Array(data.leds).fill({ r: 0, g: 0, b: 0 });
+            // Initialize LED strip with correct count
+            initializeLEDStrip();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error getting LED count');
+        });
 
-    // If shorthand hex (#RGB), expand to full form (#RRGGBB)
-    if (hex.length === 3) {
-        hex = hex.split('').map(char => char + char).join('');
-    }
-
-    // Parse the hexadecimal values into RGB components
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-
-    return { r, g, b };
-}
-
-function setCustomColor() {
-    const colorPicker = document.getElementById('colorPicker');
-    const hexColor = colorPicker.value;
-
-    console.log(hexToRGB(hexColor));
+    // Update LED brightness when slider changes
+    brightnessSlider.addEventListener('input', updateLEDDisplay);
     
-    console.log('Selected color:', hexColor);
-    
-    // Remove active class from other buttons
-    document.querySelectorAll('.control-btn:not(.turn_on):not(.turn_off)').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    
-    // Add active class to custom color button
-    document.querySelector('.control-btn.custom-color').classList.add('active');
-    document.querySelector('.control-btn.turn_on').classList.add('active');
-    document.querySelector('.control-btn.turn_off').classList.remove('active');
-}
-
-// Optional: Log color changes as they happen
-document.addEventListener('DOMContentLoaded', () => {
+    // Update LED colors when color picker changes
     const colorPicker = document.getElementById('colorPicker');
     colorPicker.addEventListener('input', (e) => {
-        console.log(hexToRGB(e.target.value));
-
-        console.log('Color changing:', e.target.value);
+        const rgb = hexToRGB(e.target.value);
+        ledStates = ledStates.map(() => rgb);
+        updateLEDDisplay();
     });
 }); 
