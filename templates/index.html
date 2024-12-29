@@ -46,73 +46,12 @@
 
         <!-- Control Bar -->
         <div class="control-bar">
-            <button class="control-btn stop" onclick="runAnimation('stop')">Stop</button>
-            <button class="control-btn off" onclick="runAnimation('turn_off')">Off</button>
-            <button class="control-btn on" onclick="runAnimation('turn_on')">On</button>
+            <button class="control-btn stop" onclick="runAnimation('stop')">Pause</button>
+            <button class="control-btn turn_off" onclick="runAnimation('turn_off')">Off</button>
+            <button class="control-btn turn_on" onclick="runAnimation('turn_on')">On</button>
         </div>
     </div>
 
-    <script>
-        function runAnimation(name) {
-            console.log(name);
-            
-            // Remove active class from all buttons
-            document.querySelectorAll('.control-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Add active class to clicked button
-            const clickedButton = event.currentTarget;
-            clickedButton.classList.add('active');
-            
-            // // Special handling for stop and power buttons
-            // if (name === 'stop' || name === 'turn_off') {
-            //     document.querySelectorAll('.control-btn:not(.stop):not(.power)').forEach(btn => {
-            //         btn.classList.remove('active');
-            //     });
-            // }
-            
-            fetch(`/api/animation/${name}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'error') {
-                        alert('Error: ' + data.message);
-                        clickedButton.classList.remove('active');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error running animation');
-                    clickedButton.classList.remove('active');
-                });
-        }
-
-        const brightnessSlider = document.getElementById('brightnessSlider');
-        const brightnessValue = document.getElementById('brightnessValue');
-        
-        // Add throttling for smoother performance
-        let lastUpdate = 0;
-        brightnessSlider.addEventListener('input', (e) => {
-            const now = Date.now();
-            const value = e.target.value;
-            brightnessValue.textContent = value;
-            
-            // Only update if 50ms have passed since last update
-            if (now - lastUpdate > 50) {
-                lastUpdate = now;
-                fetch(`/api/brightness/${value}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status === 'error') {
-                            alert('Error: ' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Error setting brightness');
-                    });
-            }
-        });
-    </script>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
 </body>
 </html> 
