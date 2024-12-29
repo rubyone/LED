@@ -136,7 +136,7 @@ h2 {
     background: linear-gradient(90deg, #ff4400, #ff8800);
     -webkit-text-fill-color: transparent; 
     -webkit-background-clip: text;  
- }
+}
 .chase-rainbow {  
     background: linear-gradient(90deg, #fb0094, #00f, #0f0);
     -webkit-text-fill-color: transparent; 
@@ -224,5 +224,84 @@ h2 {
 .control-btn.active.pause { 
     background: linear-gradient(45deg, #ffd43b, #fab005); 
     -webkit-text-fill-color: white;
+}
+
+.color-picker-container {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+#colorPicker {
+    width: 50px;
+    height: 50px;
+    padding: 0;
+    border: none;
+    border-radius: 5px;
+    background: none;
+    cursor: pointer;
+}
+
+#colorPicker::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+#colorPicker::-webkit-color-swatch {
+    border: 2px solid var(--secondary-bg);
+    border-radius: 5px;
+}
+
+.control-btn.custom-color {
+    background: linear-gradient(90deg, #fb0094, #00f, #0f0);
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+}
+
+.control-btn.active.custom-color {
+    background: linear-gradient(45deg, #fb0094, #00f, #0f0);
+    -webkit-text-fill-color: white;
+}
+
+/* LED Strip Preview Styles */
+.led-preview-section {
+    background: var(--secondary-bg);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.led-strip-container {
+    width: 100%;
+    overflow-x: auto;
+    padding: 1rem 0;
+}
+
+.led-strip {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    padding: 10px;
+    min-width: min-content;
+}
+
+.led {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #333;
+    position: relative;
+    transition: background-color 0.3s ease;
+}
+
+.led::after {
+    content: '';
+    position: absolute;
+    top: 15%;
+    left: 15%;
+    width: 30%;
+    height: 30%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    filter: blur(1px);
 }
   

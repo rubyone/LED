@@ -19,6 +19,16 @@
                 </div>
             </div>
 
+            <!-- LED Strip Preview Section -->
+            <div class="panel-section led-preview-section">
+                <h2>LED Strip Preview</h2>
+                <div class="led-strip-container">
+                    <div id="ledStrip" class="led-strip">
+                        <!-- LEDs will be added here via JavaScript -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Colors and Animations Section -->
             <div class="panel-section controls-section">
                 <!-- Static Colors -->
@@ -28,6 +38,10 @@
                         <button class="control-btn red" onclick="runAnimation('red')">Red</button>
                         <button class="control-btn green" onclick="runAnimation('green')">Green</button>
                         <button class="control-btn blue" onclick="runAnimation('blue')">Blue</button>
+                        <div class="color-picker-container">
+                            <input type="color" id="colorPicker" value="#ff0000">
+                            <button class="control-btn custom-color" onclick="setCustomColor()">Set Color</button>
+                        </div>
                     </div>
                 </div>
 
