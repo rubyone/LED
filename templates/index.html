@@ -35,9 +35,9 @@
                 <div class="control-group">
                     <h2>Colors</h2>
                     <div class="button-grid">
-                        <button class="control-btn red" onclick="runAnimation('red')">Red</button>
-                        <button class="control-btn green" onclick="runAnimation('green')">Green</button>
-                        <button class="control-btn blue" onclick="runAnimation('blue')">Blue</button>
+                        <button class="control-btn red" onclick="runAnimation('red', this)">Red</button>
+                        <button class="control-btn green" onclick="runAnimation('green', this)">Green</button>
+                        <button class="control-btn blue" onclick="runAnimation('blue', this)">Blue</button>
                         <div class="color-picker-container">
                             <input type="color" id="colorPicker" value="#ff0000">
                             <button class="control-btn custom-color" onclick="setCustomColor()">Set Color</button>
@@ -49,10 +49,10 @@
                 <div class="control-group">
                     <h2>Animations</h2>
                     <div class="button-grid">
-                        <button class="control-btn rainbow" onclick="runAnimation('rainbow')">Rainbow</button>
-                        <button class="control-btn fire" onclick="runAnimation('fire')">Fire</button>
-                        <button class="control-btn rainbow" onclick="runAnimation('rainbow_cycle')">Rainbow Cycle</button>
-                        <button class="control-btn chase-rainbow" onclick="runAnimation('theater_chase_rainbow')">Chase Rainbow</button>
+                        <button class="control-btn rainbow" onclick="runAnimation('rainbow', this)">Rainbow</button>
+                        <button class="control-btn fire" onclick="runAnimation('fire', this)">Fire</button>
+                        <button class="control-btn rainbow" onclick="runAnimation('rainbow_cycle', this)">Rainbow Cycle</button>
+                        <button class="control-btn chase-rainbow" onclick="runAnimation('theater_chase_rainbow', this)">Chase Rainbow</button>
                     </div>
                 </div>
             </div>
@@ -60,12 +60,18 @@
 
         <!-- Control Bar -->
         <div class="control-bar">
-            <button class="control-btn stop" onclick="runAnimation('stop')">Pause</button>
-            <button class="control-btn turn_off" onclick="runAnimation('turn_off')">Off</button>
-            <button class="control-btn turn_on" onclick="runAnimation('turn_on')">On</button>
+            <button class="control-btn stop" onclick="runAnimation('stop', this)">Pause</button>
+            <button class="control-btn turn_off" onclick="runAnimation('turn_off', this)">Off</button>
+            <button class="control-btn turn_on" onclick="runAnimation('turn_on', this)">On</button>
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='scripts/main.js') }}"></script>
+    <script type="module">
+        import { runAnimation, setCustomColor } from "{{ url_for('static', filename='scripts/animationController.js') }}";
+        // Make these functions available globally
+        window.runAnimation = runAnimation;
+        window.setCustomColor = setCustomColor;
+    </script>
+    <script type="module" src="{{ url_for('static', filename='scripts/main.js') }}"></script>
 </body>
 </html> 

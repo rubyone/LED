@@ -1,6 +1,7 @@
 import ledController from './ledController.js';
 import { initializeBrightnessControl } from './brightnessController.js';
 import { initializeColorPicker } from './colorPicker.js';
+import { initializeAnimationController } from './animationController.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Fetch LED count and initialize
@@ -19,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Initialize all controllers
             initializeBrightnessControl();
             initializeColorPicker();
+            initializeAnimationController();
         })
         .catch(error => {
             console.error('Error:', error);

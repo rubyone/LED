@@ -1,5 +1,5 @@
-let NUM_LEDS = null; // Adjust this to match your actual LED strip length
-let ledStates = null;
+let NUM_LEDS = 0; // Change from null to 0
+let ledStates = []; // Change from null to empty array
 
 function initializeLEDStrip() {
     const ledStrip = document.getElementById('ledStrip');
@@ -26,12 +26,18 @@ function updateLEDDisplay() {
     });
 }
 
+// Add getter to check if initialized
+function isInitialized() {
+    return NUM_LEDS > 0; // Only check NUM_LEDS since ledStates can change
+}
+
 // Export as an object with all the values
 export default {
     NUM_LEDS,
     ledStates,
     initializeLEDStrip,
     updateLEDDisplay,
+    isInitialized,
     // Add setters for NUM_LEDS and ledStates
     setNUM_LEDS(value) {
         NUM_LEDS = value;

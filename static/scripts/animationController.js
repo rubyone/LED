@@ -5,6 +5,7 @@ let isLEDOn = true; // Track LED strip state
 let lastActiveAnimation = null; // Track last active animation button
 let lastAnimationName = null; // Track the name of the last animation
 let isPlaying = true; // Add this to track play/pause state
+let isInitialized = false;
 
 function setCustomColor() {
     const colorPicker = document.getElementById('colorPicker');
@@ -29,7 +30,12 @@ function setCustomColor() {
         });
 }
 
-function runAnimation(name) {
+function runAnimation(name, clickedButton) {
+    if (!isInitialized && name !== 'turn_off') {
+        console.error('LED Controller not initialized yet');
+        return;
+    }
+
     console.log(name);
     const pauseButton = document.querySelector('.control-btn.stop');
 
@@ -143,14 +149,14 @@ function runAnimation(name) {
     }
 
     // Update button states for animations and colors
-    const clickedButton = event.currentTarget;
-    
     if (name !== 'turn_off' && name !== 'stop') {
         // Remove active class from other animation/color buttons
         document.querySelectorAll('.control-btn:not(.turn_on):not(.turn_off)').forEach(btn => {
             btn.classList.remove('active');
         });
-        clickedButton.classList.add('active');
+        if (clickedButton) {
+            clickedButton.classList.add('active');
+        }
         // Make sure "on" button is active for colors and animations
         if (name !== 'turn_on') {
             document.querySelector('.control-btn.turn_on').classList.add('active');
@@ -161,14 +167,26 @@ function runAnimation(name) {
     }
     
     // Handle color updates for the LED preview
-    if (name === 'red') {
-        ledController.setLedStates(ledController.ledStates.map(() => ({ r: 255, g: 0, b: 0 })));
-        ledController.updateLEDDisplay();
-    } else if (name === 'green') {
-        ledController.setLedStates(ledController.ledStates.map(() => ({ r: 0, g: 255, b: 0 })));
-        ledController.updateLEDDisplay();
-    } else if (name === 'blue') {
-        ledController.setLedStates(ledController.ledStates.map(() => ({ r: 0, g: 0, b: 255 })));
+    if (name === 'red' || name === 'green' || name === 'blue') {
+        if (!ledController.isInitialized()) {
+            console.error('LED Controller not initialized yet');
+            return;
+        }
+
+        let color = { r: 0, g: 0, b: 0 };
+        switch(name) {
+            case 'red':
+                color = { r: 255, g: 0, b: 0 };
+                break;
+            case 'green':
+                color = { r: 0, g: 255, b: 0 };
+                break;
+            case 'blue':
+                color = { r: 0, g: 0, b: 255 };
+                break;
+        }
+
+        ledController.setLedStates(new Array(ledController.NUM_LEDS).fill(color));
         ledController.updateLEDDisplay();
     }
     
@@ -196,3 +214,9 @@ function runAnimation(name) {
         });
         
 }
+
+function initializeAnimationController() {
+    isInitialized = true;
+}
+
+export { runAnimation, setCustomColor, initializeAnimationController };
