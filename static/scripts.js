@@ -182,4 +182,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         }
     });
+});
+
+function hexToRGB(hex) {
+    // Remove '#' if present
+    hex = hex.replace(/^#/, '');
+
+    // If shorthand hex (#RGB), expand to full form (#RRGGBB)
+    if (hex.length === 3) {
+        hex = hex.split('').map(char => char + char).join('');
+    }
+
+    // Parse the hexadecimal values into RGB components
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+
+    return { r, g, b };
+}
+
+function setCustomColor() {
+    const colorPicker = document.getElementById('colorPicker');
+    const hexColor = colorPicker.value;
+
+    console.log(hexToRGB(hexColor));
+    
+    console.log('Selected color:', hexColor);
+    
+    // Remove active class from other buttons
+    document.querySelectorAll('.control-btn:not(.turn_on):not(.turn_off)').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Add active class to custom color button
+    document.querySelector('.control-btn.custom-color').classList.add('active');
+    document.querySelector('.control-btn.turn_on').classList.add('active');
+    document.querySelector('.control-btn.turn_off').classList.remove('active');
+}
+
+// Optional: Log color changes as they happen
+document.addEventListener('DOMContentLoaded', () => {
+    const colorPicker = document.getElementById('colorPicker');
+    colorPicker.addEventListener('input', (e) => {
+        console.log(hexToRGB(e.target.value));
+
+        console.log('Color changing:', e.target.value);
+    });
 }); 
