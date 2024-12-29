@@ -14,7 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             console.log('Number of LEDs:', data.leds);
             ledController.setNUM_LEDS(data.leds);
-            ledController.setLedStates(new Array(data.leds).fill({ r: 0, g: 0, b: 0 }));
+            
+            // Initialize with black color
+            const initialStates = new Array(data.leds).fill().map(() => ({r: 0, g: 0, b: 0}));
+            ledController.setLedStates(initialStates);
+            
+            // Initialize the LED strip
             ledController.initializeLEDStrip();
             
             // Initialize all controllers

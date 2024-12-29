@@ -1,5 +1,5 @@
-let NUM_LEDS = 0; // Change from null to 0
-let ledStates = []; // Change from null to empty array
+let NUM_LEDS = 0;
+let ledStates = [];
 
 function initializeLEDStrip() {
     const ledStrip = document.getElementById('ledStrip');
@@ -15,34 +15,56 @@ function initializeLEDStrip() {
 }
 
 function updateLEDDisplay() {
+    console.log("Updating LEDs:", NUM_LEDS, ledStates);
+    
+    if (!ledStates || ledStates.length === 0) {
+        console.error("LED states not properly initialized");
+        return;
+    }
+
     ledStates.forEach((state, index) => {
         const led = document.getElementById(`led-${index}`);
         if (led) {
-            led.style.backgroundColor = `rgb(${state.r}, ${state.g}, ${state.b})`;
-            // Adjust brightness
-            const brightness = parseInt(document.getElementById('brightnessSlider').value);
-            led.style.opacity = brightness / 255;
+            if (state && typeof state.r !== 'undefined') {
+                led.style.backgroundColor = `rgb(${state.r}, ${state.g}, ${state.b})`;
+                const brightness = parseInt(document.getElementById('brightnessSlider').value);
+                led.style.opacity = brightness / 255;
+            } else {
+                console.error(`Invalid LED state for index ${index}:`, state);
+            }
+        } else {
+            console.error(`LED element not found for index ${index}`);
         }
     });
 }
 
-// Add getter to check if initialized
 function isInitialized() {
-    return NUM_LEDS > 0; // Only check NUM_LEDS since ledStates can change
+    return NUM_LEDS > 0;
 }
 
-// Export as an object with all the values
+function getLedStates() {
+    return ledStates;
+}
+
+function setLedStates(value) {
+    ledStates = [...value]; // Create a new array to ensure proper update
+}
+
+function getNUM_LEDS() {
+    return NUM_LEDS;
+}
+
+function setNUM_LEDS(value) {
+    NUM_LEDS = value;
+}
+
+// Export methods instead of values
 export default {
-    NUM_LEDS,
-    ledStates,
+    getNUM_LEDS,
+    setNUM_LEDS,
+    getLedStates,
+    setLedStates,
     initializeLEDStrip,
     updateLEDDisplay,
-    isInitialized,
-    // Add setters for NUM_LEDS and ledStates
-    setNUM_LEDS(value) {
-        NUM_LEDS = value;
-    },
-    setLedStates(value) {
-        ledStates = value;
-    }
+    isInitialized
 };

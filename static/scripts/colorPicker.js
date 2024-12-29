@@ -10,11 +10,49 @@ function hexToRGB(hex) {
 
 function initializeColorPicker() {
     const colorPicker = document.getElementById('colorPicker');
+    
+    // Update preview while picking color
     colorPicker.addEventListener('input', (e) => {
+        if (!ledController.isInitialized()) {
+            console.error('LED Controller not initialized yet');
+            return;
+        }
         const rgb = hexToRGB(e.target.value);
-        ledController.setLedStates(new Array(ledController.NUM_LEDS).fill(rgb));
+        console.log("Setting color to:", rgb);
+        
+        // Create new array with the color
+        const newStates = new Array(ledController.getNUM_LEDS()).fill().map(() => ({...rgb}));
+        ledController.setLedStates(newStates);
         ledController.updateLEDDisplay();
     });
 }
 
-export { hexToRGB, initializeColorPicker };
+function setCustomColor() {
+    if (!ledController.isInitialized()) {
+        console.error('LED Controller not initialized yet');
+        return;
+    }
+    const colorPicker = document.getElementById('colorPicker');
+    const hexColor = colorPicker.value;
+    const rgb = hexToRGB(hexColor);
+    
+    // Update all LEDs to the selected color
+    const newStates = new Array(ledController.getNUM_LEDS()).fill().map(() => ({...rgb}));
+    ledController.setLedStates(newStates);
+    ledController.updateLEDDisplay();
+    
+    // Send the RGB values to the API
+    fetch(`/api/animation/custom_color/${rgb.r}/${rgb.g}/${rgb.b}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'error') {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error setting custom color');
+        });
+}
+
+export { hexToRGB, initializeColorPicker, setCustomColor };

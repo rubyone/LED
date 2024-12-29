@@ -67,7 +67,8 @@
     </div>
 
     <script type="module">
-        import { runAnimation, setCustomColor } from "{{ url_for('static', filename='scripts/animationController.js') }}";
+        import { runAnimation } from "{{ url_for('static', filename='scripts/animationController.js') }}";
+        import { setCustomColor } from "{{ url_for('static', filename='scripts/colorPicker.js') }}";
         // Make these functions available globally
         window.runAnimation = runAnimation;
         window.setCustomColor = setCustomColor;

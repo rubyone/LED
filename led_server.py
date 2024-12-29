@@ -63,6 +63,15 @@ def set_brightness(level):
     except ValueError as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
+@app.route('/api/animation/custom_color/<int:r>/<int:g>/<int:b>')
+def set_custom_color_rgb(r, g, b):
+    try:
+        controller.stop_animation = True
+        controller.colorWipe(Color(r, g, b))
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
 @app.route('/api/animation/custom_color/<hex_color>')
 def set_custom_color(hex_color):
     try:

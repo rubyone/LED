@@ -10,6 +10,10 @@ function initializeBrightnessControl() {
         const value = e.target.value;
         brightnessValue.textContent = value;
         
+        // Update LED display immediately for visual feedback
+        ledController.updateLEDDisplay();
+        
+        // Throttle API calls
         if (now - lastUpdate > 50) {
             lastUpdate = now;
             fetch(`/api/brightness/${value}`)
@@ -25,9 +29,6 @@ function initializeBrightnessControl() {
                 });
         }
     });
-
-    // Update LED display when brightness changes
-    brightnessSlider.addEventListener('input', ledController.updateLEDDisplay);
 }
 
 export { initializeBrightnessControl }; 

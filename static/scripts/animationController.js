@@ -1,34 +1,11 @@
 import ledController from './ledController.js';
-import { hexToRGB } from './colorPicker.js';
+import { setCustomColor } from './colorPicker.js';
 
 let isLEDOn = true; // Track LED strip state
 let lastActiveAnimation = null; // Track last active animation button
 let lastAnimationName = null; // Track the name of the last animation
 let isPlaying = true; // Add this to track play/pause state
 let isInitialized = false;
-
-function setCustomColor() {
-    const colorPicker = document.getElementById('colorPicker');
-    const hexColor = colorPicker.value;
-    const rgb = hexToRGB(hexColor);
-    
-    // Update all LEDs to the selected color
-    ledController.setLedStates(ledController.ledStates.map(() => rgb));
-    ledController.updateLEDDisplay();
-    
-    // Send the color to the API
-    fetch(`/api/animation/custom_color/${hexColor.substring(1)}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'error') {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error setting custom color');
-        });
-}
 
 function runAnimation(name, clickedButton) {
     if (!isInitialized && name !== 'turn_off') {
@@ -84,7 +61,7 @@ function runAnimation(name, clickedButton) {
         document.querySelector('.control-btn.turn_off').classList.add('active');
         document.querySelector('.control-btn.turn_on').classList.remove('active');
         
-        ledController.setLedStates(ledController.ledStates.map(() => ({ r: 0, g: 0, b: 0 })));
+        ledController.setLedStates(new Array(ledController.getNUM_LEDS()).fill({ r: 0, g: 0, b: 0 }));
         ledController.updateLEDDisplay();
 
     } else if (name === 'turn_on') {
@@ -186,7 +163,7 @@ function runAnimation(name, clickedButton) {
                 break;
         }
 
-        ledController.setLedStates(new Array(ledController.NUM_LEDS).fill(color));
+        ledController.setLedStates(new Array(ledController.getNUM_LEDS()).fill(color));
         ledController.updateLEDDisplay();
     }
     
@@ -219,4 +196,4 @@ function initializeAnimationController() {
     isInitialized = true;
 }
 
-export { runAnimation, setCustomColor, initializeAnimationController };
+export { runAnimation, initializeAnimationController };
