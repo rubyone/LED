@@ -31,6 +31,10 @@ function setCustomColor() {
         console.error('LED Controller not initialized yet');
         return;
     }
+    // Remove active class from animation/color buttons but keep power state
+    document.querySelectorAll('.control-btn:not(.turn_on):not(.turn_off)').forEach(btn => {
+        btn.classList.remove('active');
+    });
     const colorPicker = document.getElementById('colorPicker');
     const hexColor = colorPicker.value;
     const rgb = hexToRGB(hexColor);
