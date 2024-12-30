@@ -159,6 +159,51 @@ h2 {
     -webkit-background-clip: text;  
 }
 
+.fire:hover {
+    background: linear-gradient(45deg, #ff4400, #ff8800);
+    -webkit-text-fill-color: white;
+}
+
+.chase-rainbow:hover {
+    background: linear-gradient(45deg, #fb0094, #00f, #0f0);
+    -webkit-text-fill-color: white;
+}
+
+.rainbow:hover {
+    background: linear-gradient(45deg, #fb0094, #00f, #0f0, #ff0, #f00);
+    -webkit-text-fill-color: white;
+}
+
+.red:hover {
+    background: linear-gradient(45deg, #ff0000, #ff6b6b);
+    -webkit-text-fill-color: white;
+}
+
+.green:hover {
+    background: linear-gradient(45deg, #3caa3c, #51cf66);
+    -webkit-text-fill-color: white;
+}
+
+.blue:hover {
+    background: linear-gradient(45deg, #0000ff, #339af0);
+    -webkit-text-fill-color: white;
+}
+
+.pause-play:hover {
+    background: linear-gradient(45deg, #ff0059, #ff3333);
+    -webkit-text-fill-color: white;
+}
+
+.turn_on:hover {
+    background: linear-gradient(45deg, #00ff00, #51cf66);
+    -webkit-text-fill-color: white;
+}
+
+.turn_off:hover {
+    background: linear-gradient(45deg, #ff0059, #ff3333);
+    -webkit-text-fill-color: white;
+}
+
 /* Active state classes */
 .control-btn.active.red { background: linear-gradient(45deg, #ff0000, #ff6b6b); color:white }
 .control-btn.active.green { background: linear-gradient(45deg, #3caa3c, #51cf66); color:white }
@@ -286,8 +331,8 @@ h2 {
 }
 
 .led {
-    width: 20px;
-    height: 20px;
+    width: 1.5vw;
+    height: 1.5vw;
     border-radius: 50%;
     background: #333;
     position: relative;
