@@ -7,7 +7,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>LED Control Panel</h1>
+        <h1>LED Strip Control Panel</h1>
 
         <div class="control-panel">
             <!-- Brightness Section -->
@@ -39,8 +39,8 @@
                         <button class="control-btn green" onclick="runAnimation('green', this)">Green</button>
                         <button class="control-btn blue" onclick="runAnimation('blue', this)">Blue</button>
                         <div class="color-picker-container">
+                            <span>Color Picker</span>
                             <input type="color" id="colorPicker" value="#ff0000">
-                            <button class="control-btn custom-color" onclick="setCustomColor()">Set Color</button>
                         </div>
                     </div>
                 </div>
@@ -68,10 +68,7 @@
 
     <script type="module">
         import { runAnimation } from "{{ url_for('static', filename='scripts/animationController.js') }}";
-        import { setCustomColor } from "{{ url_for('static', filename='scripts/colorPicker.js') }}";
-        // Make these functions available globally
         window.runAnimation = runAnimation;
-        window.setCustomColor = setCustomColor;
     </script>
     <script type="module" src="{{ url_for('static', filename='scripts/main.js') }}"></script>
 </body>

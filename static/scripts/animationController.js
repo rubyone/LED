@@ -1,5 +1,4 @@
 import ledController from './ledController.js';
-import { setCustomColor } from './colorPicker.js';
 
 let isLEDOn = true; // Track LED strip state
 let lastActiveAnimation = null; // Track last active animation button
