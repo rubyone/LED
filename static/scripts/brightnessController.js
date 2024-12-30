@@ -1,4 +1,4 @@
-import ledController from './ledController.js';
+import ledPreviewController from './ledPreviewController.js';
 
 function initializeBrightnessControl() {
     const brightnessSlider = document.getElementById('brightnessSlider');
@@ -11,7 +11,7 @@ function initializeBrightnessControl() {
         brightnessValue.textContent = value;
         
         // Update LED display immediately for visual feedback
-        ledController.updateLEDDisplay();
+        ledPreviewController.updateLEDDisplay();
         
         // Throttle API calls
         if (now - lastUpdate > 50) {

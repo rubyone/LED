@@ -1,4 +1,4 @@
-import ledController from './ledController.js';
+import ledController from './ledPreviewController.js';
 
 function hexToRGB(hex) {
     hex = hex.replace('#', '');

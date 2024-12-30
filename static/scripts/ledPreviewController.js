@@ -33,7 +33,7 @@ function updateLEDDisplay() {
             if (state && typeof state.r !== 'undefined') {
                 led.style.backgroundColor = `rgb(${state.r}, ${state.g}, ${state.b})`;
                 const brightness = parseInt(document.getElementById('brightnessSlider').value);
-                led.style.opacity = brightness / 255;
+                // led.style.opacity = brightness / 255;
             }
         }
     });
@@ -157,7 +157,7 @@ function updateLEDsWithStates() {
         if (led) {
             led.style.backgroundColor = `rgb(${state.r}, ${state.g}, ${state.b})`;
             const brightness = parseInt(document.getElementById('brightnessSlider').value);
-            led.style.opacity = brightness / 255;
+            // led.style.opacity = brightness / 255;
         }
     });
 }

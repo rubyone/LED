@@ -1,4 +1,4 @@
-import ledController from './ledController.js';
+import ledPreviewController from './ledPreviewController.js';
 
 let isLEDOn = true; // Track LED strip state
 let lastActiveAnimation = null; // Track last active animation button
@@ -16,7 +16,7 @@ function runAnimation(name, clickedButton) {
     const pauseButton = document.querySelector('.control-btn.stop');
 
     // Stop any existing animation when changing modes
-    ledController.stopAnimation();
+    ledPreviewController.stopAnimation();
 
     if (name === 'stop') {
         isPlaying = !isPlaying; // Toggle play state
@@ -63,18 +63,21 @@ function runAnimation(name, clickedButton) {
         document.querySelector('.control-btn.turn_off').classList.add('active');
         document.querySelector('.control-btn.turn_on').classList.remove('active');
         
-        ledController.setLedStates(new Array(ledController.getNUM_LEDS()).fill({ r: 0, g: 0, b: 0 }));
-        ledController.updateLEDDisplay();
+        // Set all LEDs to black and stop any running animations
+        ledPreviewController.stopAnimation();
+        const blackState = { r: 0, g: 0, b: 0 };
+        ledPreviewController.setLedStates(new Array(ledPreviewController.getNUM_LEDS()).fill(blackState));
+        ledPreviewController.updateLEDDisplay();
 
     } else if (name === 'turn_on') {
         isLEDOn = true;
         // Restore brightness to previous value
         const brightnessSlider = document.getElementById('brightnessSlider');
         const brightnessValue = document.getElementById('brightnessValue');
-        brightnessSlider.value = 255; // Or store previous brightness value
+        brightnessSlider.value = 255;
         brightnessValue.textContent = 255;
         fetch('/api/brightness/255');
-
+        
         // Update button states
         document.querySelector('.control-btn.turn_on').classList.add('active');
         document.querySelector('.control-btn.turn_off').classList.remove('active');
@@ -82,6 +85,30 @@ function runAnimation(name, clickedButton) {
         // Restore last active animation if there was one
         if (lastActiveAnimation && lastAnimationName) {
             lastActiveAnimation.classList.add('active');
+            
+            // Restore the animation preview
+            if (['rainbow', 'rainbow_cycle', 'fire', 'theater_chase_rainbow'].includes(lastAnimationName)) {
+                ledPreviewController.startAnimation(lastAnimationName);
+            } else {
+                // For static colors
+                let color;
+                switch (lastAnimationName) {
+                    case 'red':
+                        color = { r: 255, g: 0, b: 0 };
+                        break;
+                    case 'green':
+                        color = { r: 0, g: 255, b: 0 };
+                        break;
+                    case 'blue':
+                        color = { r: 0, g: 0, b: 255 };
+                        break;
+                    default:
+                        color = { r: 255, g: 255, b: 255 };
+                }
+                ledPreviewController.setLedStates(new Array(ledPreviewController.getNUM_LEDS()).fill(color));
+                ledPreviewController.updateLEDDisplay();
+            }
+
             fetch(`/api/animation/${lastAnimationName}`)
                 .then(response => response.json())
                 .then(data => {
@@ -116,23 +143,23 @@ function runAnimation(name, clickedButton) {
             case 'rainbow_cycle':
             case 'fire':
             case 'theater_chase_rainbow':
-                ledController.startAnimation(name);
+                ledPreviewController.startAnimation(name);
                 break;
             case 'red':
-                ledController.setLedStates(new Array(ledController.getNUM_LEDS()).fill({ r: 255, g: 0, b: 0 }));
-                ledController.updateLEDDisplay();
+                ledPreviewController.setLedStates(new Array(ledPreviewController.getNUM_LEDS()).fill({ r: 255, g: 0, b: 0 }));
+                ledPreviewController.updateLEDDisplay();
                 break;
             case 'green':
-                ledController.setLedStates(new Array(ledController.getNUM_LEDS()).fill({ r: 0, g: 255, b: 0 }));
-                ledController.updateLEDDisplay();
+                ledPreviewController.setLedStates(new Array(ledPreviewController.getNUM_LEDS()).fill({ r: 0, g: 255, b: 0 }));
+                ledPreviewController.updateLEDDisplay();
                 break;
             case 'blue':
-                ledController.setLedStates(new Array(ledController.getNUM_LEDS()).fill({ r: 0, g: 0, b: 255 }));
-                ledController.updateLEDDisplay();
+                ledPreviewController.setLedStates(new Array(ledPreviewController.getNUM_LEDS()).fill({ r: 0, g: 0, b: 255 }));
+                ledPreviewController.updateLEDDisplay();
                 break;
             case 'turn_off':
-                ledController.setLedStates(new Array(ledController.getNUM_LEDS()).fill({ r: 0, g: 0, b: 0 }));
-                ledController.updateLEDDisplay();
+                ledPreviewController.setLedStates(new Array(ledPreviewController.getNUM_LEDS()).fill({ r: 0, g: 0, b: 0 }));
+                ledPreviewController.updateLEDDisplay();
                 break;
         }
     }
