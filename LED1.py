@@ -84,7 +84,7 @@ class LEDController:
             pos -= 170
             return Color(0, pos * 3, 255 - pos * 3)
 
-    def colorWipe(self, color: int, wait_ms: int = 50) -> None:
+    def colorWipe(self, color, wait_ms: int = 50) -> None:
         """Wipe color across display a pixel at a time."""
         for i in range(self.strip.numPixels()):
             if self.stop_animation:
@@ -231,14 +231,6 @@ class LEDController:
         """Get the number of LEDs"""
         return self.strip.numPixels()
     
-    # def set_custom_color(self, hex_color: int) -> None:
-    #     """Set a custom color using hex value"""
-    #     try:
-    #         for i in range(self.strip.numPixels()):
-    #             self.strip.setPixelColor(i, hex_color)
-    #         self.strip.show()
-    #     except Exception as e:
-    #         raise ValueError(f"Error setting custom color: {e}")
     def set_custom_color(self) -> None:
         """Set a custom color from user input"""
         try:

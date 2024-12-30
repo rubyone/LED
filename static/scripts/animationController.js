@@ -16,6 +16,9 @@ function runAnimation(name, clickedButton) {
     console.log(name);
     const pauseButton = document.querySelector('.control-btn.stop');
 
+    // Stop any existing animation when changing modes
+    ledController.stopAnimation();
+
     if (name === 'stop') {
         isPlaying = !isPlaying; // Toggle play state
         if (isPlaying) {
@@ -108,20 +111,30 @@ function runAnimation(name, clickedButton) {
         });
 
     } else {
-        // For colors and animations
-
-        if (!isLEDOn) {
-            // If LED is off, turn it on first
-            isLEDOn = true;
-            document.querySelector('.control-btn.turn_on').classList.add('active');
-            document.querySelector('.control-btn.turn_off').classList.remove('active');
-            
-            // Restore brightness
-            const brightnessSlider = document.getElementById('brightnessSlider');
-            const brightnessValue = document.getElementById('brightnessValue');
-            brightnessSlider.value = 255;
-            brightnessValue.textContent = 255;
-            fetch('/api/brightness/255');
+        // Handle animations
+        switch (name) {
+            case 'rainbow':
+            case 'rainbow_cycle':
+            case 'fire':
+            case 'theater_chase_rainbow':
+                ledController.startAnimation(name);
+                break;
+            case 'red':
+                ledController.setLedStates(new Array(ledController.getNUM_LEDS()).fill({ r: 255, g: 0, b: 0 }));
+                ledController.updateLEDDisplay();
+                break;
+            case 'green':
+                ledController.setLedStates(new Array(ledController.getNUM_LEDS()).fill({ r: 0, g: 255, b: 0 }));
+                ledController.updateLEDDisplay();
+                break;
+            case 'blue':
+                ledController.setLedStates(new Array(ledController.getNUM_LEDS()).fill({ r: 0, g: 0, b: 255 }));
+                ledController.updateLEDDisplay();
+                break;
+            case 'turn_off':
+                ledController.setLedStates(new Array(ledController.getNUM_LEDS()).fill({ r: 0, g: 0, b: 0 }));
+                ledController.updateLEDDisplay();
+                break;
         }
     }
 
@@ -141,30 +154,6 @@ function runAnimation(name, clickedButton) {
             lastActiveAnimation = clickedButton;
             lastAnimationName = name;
         }
-    }
-    
-    // Handle color updates for the LED preview
-    if (name === 'red' || name === 'green' || name === 'blue') {
-        if (!ledController.isInitialized()) {
-            console.error('LED Controller not initialized yet');
-            return;
-        }
-
-        let color = { r: 0, g: 0, b: 0 };
-        switch(name) {
-            case 'red':
-                color = { r: 255, g: 0, b: 0 };
-                break;
-            case 'green':
-                color = { r: 0, g: 255, b: 0 };
-                break;
-            case 'blue':
-                color = { r: 0, g: 0, b: 255 };
-                break;
-        }
-
-        ledController.setLedStates(new Array(ledController.getNUM_LEDS()).fill(color));
-        ledController.updateLEDDisplay();
     }
     
     // Send animation command to API

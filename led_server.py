@@ -36,21 +36,24 @@ def index():
 
 @app.route('/api/animation/<name>')
 def run_animation(name):
+    controller.stop_current_animation()
     try:
         app.logger.info(f'Running animation: {name}')
                 
         if name == 'red':
+            app.logger.info('Setting red color')
             for i in range(controller.strip.numPixels()):
                 controller.strip.setPixelColor(i, ColorPreset.RED.color)
         elif name == 'green':
+            app.logger.info('Setting green color')
             for i in range(controller.strip.numPixels()):
                 controller.strip.setPixelColor(i, ColorPreset.GREEN.color)
         elif name == 'blue':
+            app.logger.info('Setting blue color')
             for i in range(controller.strip.numPixels()):
                 controller.strip.setPixelColor(i, ColorPreset.BLUE.color)
         controller.strip.show()
 
-    
         # Handle animations
         if name == 'rainbow':
             app.logger.info('Starting rainbow animation')
@@ -92,32 +95,17 @@ def set_brightness(level):
 @app.route('/api/animation/custom_color/<int:r>/<int:g>/<int:b>')
 def set_custom_color_rgb(r, g, b):
     try:
+        app.logger.info(f'Setting custom color RGB: ({r}, {g}, {b})')
         controller.stop_current_animation()
-        controller.colorWipe(Color(r, g, b))
-        return jsonify({'status': 'success'})
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)})
-
-@app.route('/api/animation/custom_color/<hex_color>')
-def set_custom_color(hex_color):
-    try:
-        # Convert hex string to Color
-        if isinstance(hex_color, str):
-            # Remove '#' if present
-            hex_color = hex_color.lstrip('#')
-            # Convert hex to RGB
-            r = int(hex_color[0:2], 16)
-            g = int(hex_color[2:4], 16)
-            b = int(hex_color[4:6], 16)
-            color = Color(r, g, b)
-        else:
-            color = hex_color
-            
-        controller.stop_current_animation()
-        controller.colorWipe(color)
+        # Set the color directly like we do with static colors
+        for i in range(controller.strip.numPixels()):
+            controller.strip.setPixelColor(i, Color(r, g, b))
+        controller.strip.show()
+        app.logger.info('Custom color applied successfully')
         return jsonify({'status': 'success'})
     except Exception as e:
         app.logger.error(f'Error setting custom color: {str(e)}')
+        app.logger.error(traceback.format_exc())
         return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/api/leds')
@@ -125,23 +113,23 @@ def get_leds():
     app.logger.info(f'Getting LEDs: {controller.get_leds()}')
     return jsonify({'status': 'success', 'leds': controller.get_leds()})
 
-@app.route('/api/test_color/<name>')
-def test_color(name):
-    try:
-        if name == 'red':
-            for i in range(controller.strip.numPixels()):
-                controller.strip.setPixelColor(i, Color(255, 0, 0))
-        elif name == 'green':
-            for i in range(controller.strip.numPixels()):
-                controller.strip.setPixelColor(i, Color(0, 255, 0))
-        elif name == 'blue':
-            for i in range(controller.strip.numPixels()):
-                controller.strip.setPixelColor(i, Color(0, 0, 255))
-        controller.strip.show()
-        return jsonify({'status': 'success'})
-    except Exception as e:
-        app.logger.error(f'Error in test_color: {str(e)}')
-        return jsonify({'status': 'error', 'message': str(e)})
+# @app.route('/api/test_color/<name>')
+# def test_color(name):
+#     try:
+#         if name == 'red':
+#             for i in range(controller.strip.numPixels()):
+#                 controller.strip.setPixelColor(i, Color(255, 0, 0))
+#         elif name == 'green':
+#             for i in range(controller.strip.numPixels()):
+#                 controller.strip.setPixelColor(i, Color(0, 255, 0))
+#         elif name == 'blue':
+#             for i in range(controller.strip.numPixels()):
+#                 controller.strip.setPixelColor(i, Color(0, 0, 255))
+#         controller.strip.show()
+#         return jsonify({'status': 'success'})
+#     except Exception as e:
+#         app.logger.error(f'Error in test_color: {str(e)}')
+#         return jsonify({'status': 'error', 'message': str(e)})
 
 # Add cleanup handler
 def cleanup():
