@@ -1,8 +1,11 @@
 from flask import Flask, render_template, jsonify
 import logging
 from logging.handlers import RotatingFileHandler
-from LED1 import LEDController
+from LED1 import LEDController, LEDConfig, AnimationType, ColorPreset
 from rpi_ws281x import Color
+import traceback
+import sys
+import os
 
 app = Flask(__name__)
 
@@ -16,7 +19,15 @@ app.logger.addHandler(handler)
 app.logger.setLevel(logging.INFO)
 app.logger.info('LED Server startup')
 
-controller = LEDController()
+# Modify the initialization part to include error logging
+try:
+    # Initialize controller with default config
+    controller = LEDController(LEDConfig())
+    app.logger.info('LED Controller initialized successfully')
+except Exception as e:
+    app.logger.error(f'Failed to initialize LED Controller: {str(e)}')
+    app.logger.error(traceback.format_exc())
+    sys.exit(1)
 
 @app.route('/')
 def index():
@@ -27,32 +38,47 @@ def index():
 def run_animation(name):
     try:
         app.logger.info(f'Running animation: {name}')
+                
         if name == 'red':
-            controller.stop_animation = True
-            controller.colorWipe(Color(255, 0, 0))
+            for i in range(controller.strip.numPixels()):
+                controller.strip.setPixelColor(i, ColorPreset.RED.color)
         elif name == 'green':
-            controller.stop_animation = True
-            controller.colorWipe(Color(0, 255, 0))
+            for i in range(controller.strip.numPixels()):
+                controller.strip.setPixelColor(i, ColorPreset.GREEN.color)
         elif name == 'blue':
-            controller.stop_animation = True
-            controller.colorWipe(Color(0, 0, 255))
-        elif name == 'rainbow':
-            controller.start_animation(controller.rainbow)
+            for i in range(controller.strip.numPixels()):
+                controller.strip.setPixelColor(i, ColorPreset.BLUE.color)
+        controller.strip.show()
+
+    
+        # Handle animations
+        if name == 'rainbow':
+            app.logger.info('Starting rainbow animation')
+            controller.start_animation(AnimationType.RAINBOW)
         elif name == 'fire':
-            controller.start_animation(controller.fire_effect)
+            app.logger.info('Starting fire animation')
+            controller.start_animation(AnimationType.FIRE)
         elif name == 'rainbow_cycle':
-            controller.start_animation(controller.rainbowCycle)
+            app.logger.info('Starting rainbow cycle animation')
+            controller.start_animation(AnimationType.RAINBOW_CYCLE)
         elif name == 'theater_chase_rainbow':
-            controller.start_animation(controller.theaterChaseRainbow)
+            app.logger.info('Starting theater chase rainbow animation')
+            controller.start_animation(AnimationType.THEATER_CHASE_RAINBOW)
+        # Handle control commands
         elif name == 'stop':
-            controller.stop_animation = True
+            app.logger.info('Stopping animation')
+            controller.stop_current_animation()
         elif name == 'turn_off':
+            app.logger.info('Turning off LEDs')
             controller.turn_off()
         elif name == 'turn_on':
+            app.logger.info('Setting maximum brightness')
             controller.set_brightness(255)
+            
         return jsonify({'status': 'success'})
     except Exception as e:
         app.logger.error(f'Error running animation {name}: {str(e)}')
+        app.logger.error(traceback.format_exc())
         return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/api/brightness/<int:level>')
@@ -63,12 +89,35 @@ def set_brightness(level):
     except ValueError as e:
         return jsonify({'status': 'error', 'message': str(e)})
 
+@app.route('/api/animation/custom_color/<int:r>/<int:g>/<int:b>')
+def set_custom_color_rgb(r, g, b):
+    try:
+        controller.stop_current_animation()
+        controller.colorWipe(Color(r, g, b))
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)})
+
 @app.route('/api/animation/custom_color/<hex_color>')
 def set_custom_color(hex_color):
     try:
-        controller.set_custom_color(hex_color)
+        # Convert hex string to Color
+        if isinstance(hex_color, str):
+            # Remove '#' if present
+            hex_color = hex_color.lstrip('#')
+            # Convert hex to RGB
+            r = int(hex_color[0:2], 16)
+            g = int(hex_color[2:4], 16)
+            b = int(hex_color[4:6], 16)
+            color = Color(r, g, b)
+        else:
+            color = hex_color
+            
+        controller.stop_current_animation()
+        controller.colorWipe(color)
         return jsonify({'status': 'success'})
     except Exception as e:
+        app.logger.error(f'Error setting custom color: {str(e)}')
         return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/api/leds')
@@ -76,6 +125,36 @@ def get_leds():
     app.logger.info(f'Getting LEDs: {controller.get_leds()}')
     return jsonify({'status': 'success', 'leds': controller.get_leds()})
 
+@app.route('/api/test_color/<name>')
+def test_color(name):
+    try:
+        if name == 'red':
+            for i in range(controller.strip.numPixels()):
+                controller.strip.setPixelColor(i, Color(255, 0, 0))
+        elif name == 'green':
+            for i in range(controller.strip.numPixels()):
+                controller.strip.setPixelColor(i, Color(0, 255, 0))
+        elif name == 'blue':
+            for i in range(controller.strip.numPixels()):
+                controller.strip.setPixelColor(i, Color(0, 0, 255))
+        controller.strip.show()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        app.logger.error(f'Error in test_color: {str(e)}')
+        return jsonify({'status': 'error', 'message': str(e)})
+
+# Add cleanup handler
+def cleanup():
+    controller.cleanup()
+
+# Register cleanup handler
+import atexit
+atexit.register(cleanup)
 
 if __name__ == '__main__':
+    # Make sure to run with sudo
+    if os.geteuid() != 0:
+        app.logger.error("This script must be run with sudo privileges")
+        sys.exit(1)
+    
     app.run(host='0.0.0.0', port=5000) 

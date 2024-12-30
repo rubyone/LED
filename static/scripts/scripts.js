@@ -5,42 +5,6 @@ let isPlaying = true; // Add this to track play/pause state
 let NUM_LEDS = null; // Adjust this to match your actual LED strip length
 let ledStates = null;
 
-// //send leds count command to api
-// function sendLedsCount() {
-//     fetch('/api/leds')
-//         .then(response => response.json())
-//         .then(data => {
-//             if (data.status === 'error') {
-//                 console.error('Error:', data.message);
-//                 return;
-//             }
-//             console.log('Number of LEDs:', data.leds);
-//             // Update NUM_LEDS variable
-//             NUM_LEDS = data.leds;
-//             // Update ledStates array
-//             ledStates = new Array(data.leds).fill({ r: 0, g: 0, b: 0 });
-//             // Initialize LED strip with correct count
-//             initializeLEDStrip();
-//         })
-//         .catch(error => {
-//             console.error('Error:', error);
-//             alert('Error getting LED count');
-//         });
-// }
-// sendLedsCount();
-
-
-function hexToRGB(hex) {
-    // Remove the # if present
-    hex = hex.replace('#', '');
-    
-    // Convert to RGB values
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    
-    return { r, g, b };
-}
 
 function initializeLEDStrip() {
     const ledStrip = document.getElementById('ledStrip');

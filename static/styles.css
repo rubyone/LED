@@ -227,6 +227,7 @@ h2 {
 }
 
 .color-picker-container {
+    justify-content: center;
     display: flex;
     gap: 0.5rem;
     align-items: center;
