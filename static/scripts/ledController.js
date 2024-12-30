@@ -15,7 +15,6 @@ function initializeLEDStrip() {
 }
 
 function updateLEDDisplay() {
-    console.log("Updating LEDs:", NUM_LEDS, ledStates);
     
     if (!ledStates || ledStates.length === 0) {
         console.error("LED states not properly initialized");

@@ -17,8 +17,7 @@ function initializeColorPicker() {
             console.error('LED Controller not initialized yet');
             return;
         }
-        const rgb = hexToRGB(e.target.value);
-        console.log("Setting color to:", rgb);
+        const rgb = hexToRGB(e.target.value);    
         
         // Create new array with the color
         const newStates = new Array(ledController.getNUM_LEDS()).fill().map(() => ({...rgb}));

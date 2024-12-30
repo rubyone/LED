@@ -1,80 +1,80 @@
 #!/usr/bin/env python3
-# rpi_ws281x library strandtest example
-# Author: Tony DiCola (tony@tonydicola.com)
-#
-# Direct port of the Arduino NeoPixel library strandtest example.  Showcases
-# various animations on a strip of NeoPixels.ls
+"""
+LED Strip Controller for Raspberry Pi using WS281x LEDs
+Provides various animations and effects for LED strip control
+"""
+from dataclasses import dataclass
+from enum import Enum
+from typing import Callable, Dict, List, Optional, Tuple
 import sys
-import traceback
 import threading
 from queue import Queue
 import random
-
-# sys.path.append(os.path.realpath('.'))
-
-# IDEA: WICHTIG
-# wichtig - hier angeben wo das module liegt /sites_packages/inquirer (ohne inquirer)
-sys.path.insert(0, "/home/pi/.local/lib/python3.9/site-packages/")
-# normal importieren
-import inquirer
-
-import time, shutil
-from rpi_ws281x import *
+import time
 import argparse
 
-# LED strip configuration:
-LED_COUNT = 41  # Number of LED pixels.
-LED_PIN = 18  # GPIO pin connected to the pixels (18 uses PWM!).
-# LED_PIN        = 10      # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
-LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
-LED_DMA = 10  # DMA channel to use for generating signal (try 10)
-LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
-LED_INVERT = False  # True to invert the signal (when using NPN transistor level shift)
-LED_CHANNEL = 0  # set to '1' for GPIOs 13, 19, 41, 45 or 53
+# Add site-packages path for inquirer
+sys.path.insert(0, "/home/pi/.local/lib/python3.9/site-packages/")
+import inquirer
+from rpi_ws281x import Adafruit_NeoPixel, Color
 
-stop_animation = False # global variable to stop the animation
+# LED strip configuration
+@dataclass
+class LEDConfig:
+    """Configuration settings for LED strip"""
+    COUNT: int = 41
+    PIN: int = 18  # GPIO pin (18 uses PWM!)
+    FREQ_HZ: int = 800000
+    DMA: int = 10
+    BRIGHTNESS: int = 255
+    INVERT: bool = False
+    CHANNEL: int = 0  # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
-# Print iterations progress
-def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', autosize = False):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-        autosize    - Optional  : automatically resize the length of the progress bar to the terminal window (Bool)
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    styling = '%s |%s| %s%% %s' % (prefix, fill, percent, suffix)
-    if autosize:
-        cols, _ = shutil.get_terminal_size(fallback = (length, 1))
-        length = cols - len(styling)
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print('\r%s' % styling.replace(fill, bar), end = '\r')
-    # Print New Line on Complete
-    if iteration == total:
-        print()
+class AnimationType(Enum):
+    """Available animation types"""
+    RAINBOW = "Rainbow"
+    RAINBOW_CYCLE = "Rainbow Cycle"
+    THEATER_CHASE = "Theater Chase"
+    THEATER_CHASE_RAINBOW = "Theater Chase Rainbow"
+    BREATHE = "Breathe"
+    FIRE = "Fire Effect"
 
+class ColorPreset(Enum):
+    """Preset colors for the LED strip"""
+    RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
+    BLUE = (0, 0, 255)
+    WHITE = (255, 255, 255)
+    WARM_WHITE = (255, 147, 41)
+    
+    @property
+    def color(self) -> int:
+        """Convert RGB tuple to Color value"""
+        r, g, b = self.value
+        return Color(r, g, b)
 
-# Move the class definitions before the main function
 class LEDController:
-    def __init__(self, led_count=LED_COUNT, led_pin=LED_PIN, led_freq_hz=LED_FREQ_HZ, led_dma=LED_DMA, 
-                 led_brightness=LED_BRIGHTNESS, led_invert=LED_INVERT, led_channel=LED_CHANNEL): 
-        self.strip = Adafruit_NeoPixel(led_count, led_pin, led_freq_hz, led_dma, 
-                                      led_invert, led_brightness, led_channel)
-        self.strip.begin()
-        self.stop_animation = False
-        self.last_led_states = [(0, 0, 0)] * led_count
-        self.animation_thread = None
-        self.animation_queue = Queue()
+    """Controls LED strip animations and effects"""
+    
+    def __init__(self, config: LEDConfig = LEDConfig()):
+        """Initialize LED controller with given configuration"""
+        try:
+            self.strip = Adafruit_NeoPixel(
+                config.COUNT, config.PIN, config.FREQ_HZ,
+                config.DMA, config.INVERT, config.BRIGHTNESS, config.CHANNEL
+            )
+            self.strip.begin()
+            if not self.strip.numPixels():
+                raise RuntimeError("Failed to initialize LED strip - no pixels detected")
+            self.stop_animation = False
+            self.animation_thread: Optional[threading.Thread] = None
+            self.animation_queue: Queue = Queue()
+        except Exception as e:
+            raise RuntimeError(f"Failed to initialize LED strip: {str(e)}")
 
-    def wheel(self, pos):
+    def wheel(self, pos: int) -> int:
         """Generate rainbow colors across 0-255 positions."""
+        pos = pos % 256
         if pos < 85:
             return Color(pos * 3, 255 - pos * 3, 0)
         elif pos < 170:
@@ -84,18 +84,16 @@ class LEDController:
             pos -= 170
             return Color(0, pos * 3, 255 - pos * 3)
 
-    def colorWipe(self, color, wait_ms=50):
+    def colorWipe(self, color: int, wait_ms: int = 50) -> None:
         """Wipe color across display a pixel at a time."""
         for i in range(self.strip.numPixels()):
-            # printProgressBar(i + 1, self.strip.numPixels(), 
-            #                prefix='Animation Progress::', 
-            #                suffix='Animation Complete', 
-            #                autosize=True)
+            if self.stop_animation:
+                break
             self.strip.setPixelColor(i, color)
             self.strip.show()
             time.sleep(wait_ms / 1000.0)
 
-    def rainbow(self, wait_ms=20):
+    def rainbow(self, wait_ms: int = 20) -> None:
         """Draw rainbow that fades across all pixels at once."""
         j = 0
         while not self.stop_animation:
@@ -105,7 +103,7 @@ class LEDController:
             time.sleep(wait_ms / 1000.0)
             j = (j + 1) & 255
 
-    def rainbowCycle(self, wait_ms=20):
+    def rainbowCycle(self, wait_ms: int = 20) -> None:
         """Draw rainbow that uniformly distributes itself across all pixels."""
         j = 0
         while not self.stop_animation:
@@ -116,7 +114,7 @@ class LEDController:
             time.sleep(wait_ms / 1000.0)
             j = (j + 1) % 256
 
-    def theaterChaseRainbow(self, wait_ms=50):
+    def theaterChaseRainbow(self, wait_ms: int = 50) -> None:
         """Rainbow movie theater light style chaser animation."""
         j = 0
         while not self.stop_animation:
@@ -129,7 +127,7 @@ class LEDController:
                     self.strip.setPixelColor(i + q, 0)
             j = (j + 1) % 256
 
-    def breathe(self, color, speed_ms=20):
+    def breathe(self, color: int, speed_ms: int = 20) -> None:
         """Breathing effect that smoothly fades in and out"""
         while not self.stop_animation:
             # Fade in
@@ -143,7 +141,7 @@ class LEDController:
                 self.colorWipe(color, wait_ms=0)
                 time.sleep(speed_ms/1000.0)
 
-    def fire_effect(self):
+    def fire_effect(self) -> None:
         """Simulate fire effect"""
         while not self.stop_animation:
             for i in range(self.strip.numPixels()):
@@ -152,7 +150,7 @@ class LEDController:
             self.strip.show()
             time.sleep(random.uniform(0.05, 0.2))
 
-    def get_color_input(self):
+    def get_color_input(self) -> Optional[Color]:
         """Get and validate RGB color input from user"""
         try:
             r = int(input("Red (0 - 255): ").strip())
@@ -169,22 +167,40 @@ class LEDController:
             print(f"Invalid input: {e}")
             return None
 
-    def start_animation(self, animation_func, *args, **kwargs):
+    def start_animation(self, animation_type: AnimationType, *args, **kwargs) -> None:
         """Safely start and control an animation"""
+        animation_map = {
+            AnimationType.RAINBOW: self.rainbow,
+            AnimationType.RAINBOW_CYCLE: self.rainbowCycle,
+            AnimationType.THEATER_CHASE: self.theaterChaseRainbow,
+            AnimationType.BREATHE: self.breathe,
+            AnimationType.FIRE: self.fire_effect
+        }
+        
+        self.stop_current_animation()
+        
+        if animation_func := animation_map.get(animation_type):
+            self.stop_animation = False
+            self.animation_thread = threading.Thread(
+                target=animation_func,
+                args=args,
+                kwargs=kwargs,
+                daemon=True
+            )
+            self.animation_thread.start()
+
+    def stop_current_animation(self) -> None:
+        """Stop the currently running animation"""
         self.stop_animation = True
         if self.animation_thread and self.animation_thread.is_alive():
-            self.animation_thread.join()
-        
-        self.stop_animation = False
-        self.animation_thread = threading.Thread(
-            target=animation_func,
-            args=args,
-            kwargs=kwargs,
-            daemon=True
-        )
-        self.animation_thread.start()
+            self.animation_thread.join(timeout=1.0)
 
-    # Add other LED control methods from the original code
+    def cleanup(self) -> None:
+        """Clean up resources and turn off LEDs"""
+        self.stop_current_animation()
+        self.reset()
+        self.turn_off()
+
     def check_for_quit(self):
         while True:
             user_input = input("Enter 'q' to stop the animation: ")
@@ -192,80 +208,95 @@ class LEDController:
                 self.stop_animation = True
                 break
 
-    def reset(self, wait_ms=50, preserve_state=False):
+    def reset(self, wait_ms: int = 50, preserve_state: bool = False) -> None:
         if not preserve_state:
             for i in range(self.strip.numPixels()):
                 self.strip.setPixelColor(i, Color(0, 0, 0))
                 self.strip.show()
                 time.sleep(wait_ms / 1000.0)
 
-    def set_brightness(self, brightness):
+    def set_brightness(self, brightness: int) -> None:
         """Set the brightness level (0-255)"""
         if not 0 <= brightness <= 255:
             raise ValueError("Brightness must be between 0 and 255")
         self.strip.setBrightness(brightness)
         self.strip.show()
     
-    def turn_off(self):
+    def turn_off(self) -> None:
         """Turn off the LED strip"""
         self.strip.setBrightness(0)
         self.strip.show()
 
-    def get_leds(self):
+    def get_leds(self) -> int:
         """Get the number of LEDs"""
         return self.strip.numPixels()
     
-    def set_custom_color(self, hex_color):
-        """Set the custom color"""
-        self.strip.setPixelColor(0, Color(hex_color))
-        self.strip.show()
+    # def set_custom_color(self, hex_color: int) -> None:
+    #     """Set a custom color using hex value"""
+    #     try:
+    #         for i in range(self.strip.numPixels()):
+    #             self.strip.setPixelColor(i, hex_color)
+    #         self.strip.show()
+    #     except Exception as e:
+    #         raise ValueError(f"Error setting custom color: {e}")
+    def set_custom_color(self) -> None:
+        """Set a custom color from user input"""
+        try:
+            if color := self.controller.get_color_input():
+                self.controller.colorWipe(color)
+                print("Custom color applied successfully")
+        except Exception as e:
+            print(f"Error setting custom color: {e}")
 
 class LEDMenu:
-    def __init__(self, controller):
+    """Interactive menu system for LED control"""
+    
+    def __init__(self, controller: LEDController):
         self.controller = controller
+        self.setup_menu_options()
+
+    def setup_menu_options(self) -> None:
+        """Setup the menu structure"""
         self.menu_options = {
             'Static Colors': {
-                'Red': lambda: self.controller.colorWipe(Color(255, 0, 0)),
-                'Green': lambda: self.controller.colorWipe(Color(0, 255, 0)),
-                'Blue': lambda: self.controller.colorWipe(Color(0, 0, 255))
+                color.name: lambda c=color: self.controller.colorWipe(c.color)
+                for color in ColorPreset
             },
             'Animations': {
-                'Rainbow': lambda: self.controller.start_animation(self.controller.rainbow),
-                'Rainbow Cycle': lambda: self.controller.start_animation(self.controller.rainbowCycle),
-                'Theater Chase': lambda: self.controller.start_animation(self.controller.theaterChase, Color(127, 127, 127)),
-                'Theater Chase Rainbow': lambda: self.controller.start_animation(self.controller.theaterChaseRainbow)
+                anim.value: lambda a=anim: self.controller.start_animation(a)
+                for anim in AnimationType
             },
             'Settings': {
-                'Set Brightness': self.set_brightness
+                'Set Brightness': self.set_brightness,
+                'Custom Color': self.set_custom_color
             }
         }
 
-    def run(self):
-        while True:
-            questions = [
-                inquirer.List('category',
-                            message="Choose a category",
-                            choices=list(self.menu_options.keys()) + ['Exit']
-                            ),
-            ]
-            category = inquirer.prompt(questions)['category']
-            
-            if category == 'Exit':
-                break
+    def run(self) -> None:
+        """Run the interactive menu"""
+        try:
+            while True:
+                category = self.prompt_category()
+                if category == 'Exit':
+                    break
                 
-            options = list(self.menu_options[category].keys()) + ['Back']
-            questions = [
-                inquirer.List('option',
-                            message=f"Choose {category}",
-                            choices=options
-                            ),
-            ]
-            option = inquirer.prompt(questions)['option']
-            
-            if option != 'Back':
-                self.menu_options[category][option]()
+                self.handle_category_selection(category)
+        except KeyboardInterrupt:
+            print("\nExiting menu...")
+        finally:
+            self.controller.cleanup()
 
-    def set_brightness(self):
+    def prompt_category(self) -> str:
+        """Prompt user for category selection"""
+        questions = [
+            inquirer.List('category',
+                         message="Choose a category",
+                         choices=list(self.menu_options.keys()) + ['Exit']
+                         ),
+        ]
+        return inquirer.prompt(questions)['category']
+
+    def set_brightness(self) -> None:
         try:
             brightness = int(input("Enter brightness (0-255): ").strip())
             self.controller.set_brightness(brightness)
@@ -273,22 +304,54 @@ class LEDMenu:
         except ValueError as e:
             print(f"Invalid input: {e}")
 
-# Then define the main function
-def main():
+    def set_custom_color(self) -> None:
+        """Set a custom color from user input"""
+        try:
+            if color := self.controller.get_color_input():
+                self.controller.colorWipe(color)
+                print("Custom color applied successfully")
+        except Exception as e:
+            print(f"Error setting custom color: {e}")
+
+    def handle_category_selection(self, category: str) -> None:
+        """Handle the selection of a menu category"""
+        if category in self.menu_options:
+            options = list(self.menu_options[category].keys()) + ['Back']
+            questions = [
+                inquirer.List('option',
+                             message=f"Choose {category}",
+                             choices=options
+                             ),
+            ]
+            
+            if option := inquirer.prompt(questions)['option']:
+                if option != 'Back':
+                    try:
+                        # Execute the selected option
+                        self.menu_options[category][option]()
+                    except Exception as e:
+                        print(f"Error executing {option}: {e}")
+
+def main() -> None:
+    """Main entry point for the LED controller"""
     parser = argparse.ArgumentParser(description='LED Strip Controller')
-    parser.add_argument('-c', '--clear', action='store_true', help='clear the display on exit')
-    parser.add_argument('-b', '--brightness', type=int, default=255, help='LED brightness (0-255)')
+    parser.add_argument('-c', '--clear', action='store_true',
+                       help='clear the display on exit')
+    parser.add_argument('-b', '--brightness', type=int, default=255,
+                       help='LED brightness (0-255)')
     args = parser.parse_args()
 
+    config = LEDConfig(BRIGHTNESS=args.brightness)
+    
     try:
-        controller = LEDController(led_brightness=args.brightness)
+        controller = LEDController(config)
         menu = LEDMenu(controller)
         menu.run()
-    except KeyboardInterrupt:
-        print("\nShutting down...")
+    except Exception as e:
+        print(f"An error occurred: {e}")
     finally:
         if args.clear:
-            controller.reset()
+            controller.cleanup()
 
 if __name__ == '__main__':
     main()
