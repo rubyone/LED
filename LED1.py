@@ -22,7 +22,7 @@ from rpi_ws281x import Adafruit_NeoPixel, Color
 @dataclass
 class LEDConfig:
     """Configuration settings for LED strip"""
-    COUNT: int = 41
+    COUNT: int = 29
     PIN: int = 18  # GPIO pin (18 uses PWM!)
     FREQ_HZ: int = 800000
     DMA: int = 10

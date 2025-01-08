@@ -3,11 +3,11 @@ Description=LED Control Web Server
 After=network.target
 
 [Service]
-User=root
-Group=root
-WorkingDirectory=/home/pi/LED
+User=ruby0ne
+Group=ruby0ne
+WorkingDirectory=/home/ruby0ne/ws281x-env/LED
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/usr/bin/python3 /home/pi/LED/led_server.py
+ExecStart=sudo /home/ruby0ne/ws281x-env/bin/python3 /home/ruby0ne/ws281x-env/LED/led_server.py
 Restart=always
 StandardOutput=append:/var/log/led-server.log
 StandardError=append:/var/log/led-server.error.log

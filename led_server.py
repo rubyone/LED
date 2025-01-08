@@ -6,6 +6,7 @@ from rpi_ws281x import Color
 import traceback
 import sys
 import os
+import subprocess
 
 app = Flask(__name__)
 
@@ -33,6 +34,16 @@ except Exception as e:
 def index():
     app.logger.info('Homepage accessed')
     return render_template('index.html')
+
+# Route to restart the service
+@app.route('/restart', methods=['GET'])
+def restart_service():
+    try:
+        # Restart the service using systemctl
+        subprocess.run(['sudo', 'systemctl', 'restart', 'led-server.service'], check=True)
+        return "Service restarted successfully!", 200
+    except subprocess.CalledProcessError:
+        return "Failed to restart service.", 500
 
 @app.route('/api/animation/<name>')
 def run_animation(name):
