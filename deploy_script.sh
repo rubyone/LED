@@ -1,6 +1,6 @@
 #!/bin/bash
 # Example deployment script
-cd /path/to/your/project
+cd ~/LED
 git pull origin develop  # Pull the latest changes from GitHub
 pip install -r requirements.txt  # Install/update dependencies
-sudo systemctl restart your_service  # Restart your service to apply changes
+sudo systemctl restart led-server.service  # Restart your service to apply changes

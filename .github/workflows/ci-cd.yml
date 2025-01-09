@@ -1,0 +1,72 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - develop  # Trigger the pipeline on pushes to the develop branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ -----BEGIN OPENSSH PRIVATE KEY-----
+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
+LW9xKW5cawxcOr0UoH13INBDg=
+-----END OPENSSH PRIVATE KEY----- }}
+
+    - name: Deploy to Raspberry Pi
+      run: |
+        ssh pi@your_raspberry_pi_ip 'cd ~/LED && ./deploy_script.sh'
