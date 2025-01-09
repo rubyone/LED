@@ -9,6 +9,7 @@ StartLimitBurst=5
 User=root
 Group=root
 WorkingDirectory=/home/pi/LED
+# WorkingDirectory=/home/ruby0ne/LED
 Environment=PYTHONUNBUFFERED=1
 ExecStart=/usr/bin/python3 /home/pi/LED/led_server.py
 Restart=on-failure

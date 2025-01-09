@@ -22,20 +22,31 @@ import inquirer
 from rpi_ws281x import Adafruit_NeoPixel, Color
 
 def load_config():
-    """Load configuration based on hostname"""
+    """Load configuration based on hostname and user"""
     try:
         hostname = socket.gethostname()
         config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+        current_user = os.getenv('USER')
         
         with open(config_path, 'r') as f:
             configs = json.load(f)
             
-        # Try to get config for this machine
-        for machine_name, machine_config in configs.items():
-            if machine_config['username'] == os.getenv('USER'):
+        # If running as root, look for root_user flag
+        if current_user == 'root':
+            for machine_config in configs.values():
+                if machine_config.get('root_user', False):
+                    return machine_config
+            # If no root configuration found, try to detect based on hostname
+            if hostname in configs:
+                return configs[hostname]
+            raise ValueError("No root configuration found")
+            
+        # Try to get config for this machine based on username
+        for machine_config in configs.values():
+            if machine_config['username'] == current_user:
                 return machine_config
                 
-        raise ValueError(f"No configuration found for user: {os.getenv('USER')}")
+        raise ValueError(f"No configuration found for user: {current_user}")
         
     except Exception as e:
         raise RuntimeError(f"Failed to load configuration: {str(e)}")
