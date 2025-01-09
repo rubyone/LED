@@ -14,10 +14,14 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-        ssh-passphrase: ${{ secrets.SSH_PASSPHRASE }}
+      run: |
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
+        chmod 600 private_key
+        eval "$(ssh-agent -s)"
+        ssh-add private_key
+        rm private_key  # Clean up the private key file after adding it to the agent
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh-agent.sock
 
     - name: Deploy to Raspberry Pi
       run: |
