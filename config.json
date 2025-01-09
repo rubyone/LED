@@ -1,0 +1,12 @@
+{
+    "raspberry_pi_1": {
+        "username": "pi",
+        "led_count": 41,
+        "led_pin": 18
+    },
+    "raspberry_pi_2": {
+        "username": "ruby0ne",
+        "led_count": 30,
+        "led_pin": 18
+    }
+}

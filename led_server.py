@@ -19,10 +19,11 @@ app.logger.addHandler(handler)
 app.logger.setLevel(logging.INFO)
 app.logger.info('LED Server startup')
 
-# Modify the initialization part to include error logging
+# Modify the initialization part
 try:
-    # Initialize controller with default config
-    controller = LEDController(LEDConfig())
+    # Initialize controller with machine-specific config
+    config = LEDConfig.from_machine_config()
+    controller = LEDController(config)
     app.logger.info('LED Controller initialized successfully')
 except Exception as e:
     app.logger.error(f'Failed to initialize LED Controller: {str(e)}')
