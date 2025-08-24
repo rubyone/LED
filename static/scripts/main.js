@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Initialize the LED strip
             ledPreviewController.initializeLEDStrip();
+            ledPreviewController.initializeLEDControls();
             
             // Initialize all controllers
             initializeBrightnessControl();

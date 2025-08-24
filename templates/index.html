@@ -7,6 +7,15 @@
 </head>
 <body>
     <div class="container">
+        <div class="status-indicator" id="statusIndicator">
+            <div class="status-dot"></div>
+            <span class="status-text">Connected</span>
+        </div>
+        
+        <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+            <span class="theme-icon">🌙</span>
+        </button>
+        
         <h1>Office Table LED Strip Control Panel</h1>
 
         <div class="control-panel">
@@ -14,7 +23,8 @@
             <div class="panel-section brightness-section">
                 <h2>Brightness</h2>
                 <div class="brightness-control">
-                    <input type="range" min="0" max="255" value="255" class="brightness-slider" id="brightnessSlider">
+                    <input type="range" min="0" max="255" value="255" class="brightness-slider" id="brightnessSlider" 
+                           title="Adjust LED brightness" aria-label="LED brightness control">
                     <div class="brightness-value"><span id="brightnessValue">255</span></div>
                 </div>
             </div>
@@ -22,6 +32,20 @@
             <!-- LED Strip Preview Section -->
             <div class="panel-section led-preview-section">
                 <h2>LED Strip Preview</h2>
+                <div class="led-controls">
+                    <button class="led-control-btn" id="showNumbers" title="Toggle LED numbers">
+                        <span>123</span>
+                    </button>
+                    <button class="led-control-btn" id="clearAll" title="Clear all LEDs">
+                        <span>🧹</span>
+                    </button>
+                    <button class="led-control-btn" id="fillAll" title="Fill all LEDs with current color">
+                        <span>🎨</span>
+                    </button>
+                    <button class="led-control-btn" id="randomize" title="Randomize colors">
+                        <span>🎲</span>
+                    </button>
+                </div>
                 <div class="led-strip-container">
                     <div id="ledStrip" class="led-strip">
                         <!-- LEDs will be added here via JavaScript -->
@@ -40,7 +64,8 @@
                         <button class="control-btn blue" onclick="runAnimation('blue', this)">Blue</button>
                         <div class="color-picker-container">
                             <span>Color Picker</span>
-                            <input type="color" id="colorPicker" value="#ff0000">
+                            <input type="color" id="colorPicker" value="#ff0000" 
+                                   title="Choose custom color" aria-label="Custom color picker">
                         </div>
                     </div>
                 </div>

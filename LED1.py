@@ -13,10 +13,20 @@ import random
 import time
 import argparse
 
-# Add site-packages path for inquirer
-sys.path.insert(0, "/home/pi/.local/lib/python3.9/site-packages/")
+# Add site-packages path for inquirer (only on Raspberry Pi)
+import platform
+if platform.machine().startswith('arm'):
+    sys.path.insert(0, "/home/pi/.local/lib/python3.9/site-packages/")
+
 import inquirer
-from rpi_ws281x import Adafruit_NeoPixel, Color
+
+# Import appropriate LED library based on platform
+try:
+    from rpi_ws281x import Adafruit_NeoPixel, Color
+    print("Using real rpi_ws281x library")
+except ImportError:
+    from mock_rpi_ws281x import Adafruit_NeoPixel, Color
+    print("Using mock rpi_ws281x library for development")
 
 # LED strip configuration
 @dataclass
