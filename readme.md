@@ -110,3 +110,7 @@ tail -f /var/log/led-server.error.log
 ```sh
 sudo cp led-server.logrotate /etc/logrotate.d/led-server
 ```
+
+```sh
+cd "/Users/ruby0ne/Coding Playground/LED" && "/Users/ruby0ne/Coding Playground/LED/.venv/bin/python" led_server.py
+```

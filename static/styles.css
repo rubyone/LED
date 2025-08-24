@@ -729,7 +729,7 @@ h2 {
     visibility: hidden;
     transition: all 0.2s ease;
     pointer-events: none;
-    transform: translateX(-50%) translateY(-50%);
+    transform: translateX(-50%) translateY(-100%);
 }
 
 .tooltip-content {

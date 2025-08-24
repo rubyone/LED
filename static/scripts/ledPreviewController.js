@@ -88,14 +88,27 @@ function handleLEDClick(index) {
         const hex = colorPicker.value;
         const rgb = hexToRgb(hex);
         
-        // Update the specific LED
+        // Toggle LED state
+        let finalColor;
         if (!ledStates[index] || (ledStates[index].r === 0 && ledStates[index].g === 0 && ledStates[index].b === 0)) {
             ledStates[index] = rgb;
+            finalColor = rgb;
         } else {
             ledStates[index] = { r: 0, g: 0, b: 0 };
+            finalColor = { r: 0, g: 0, b: 0 };
         }
         
         updateLEDDisplay();
+        
+        // Send to backend
+        fetch(`/api/led/${index}/${finalColor.r}/${finalColor.g}/${finalColor.b}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'success') {
+                    console.error('Failed to update LED on backend:', data.message);
+                }
+            })
+            .catch(error => console.error('Error calling individual LED API:', error));
         
         // Add visual feedback
         const led = document.getElementById(`led-${index}`);
@@ -119,6 +132,9 @@ function initializeLEDControls() {
     const clearAllBtn = document.getElementById('clearAll');
     const fillAllBtn = document.getElementById('fillAll');
     const randomizeBtn = document.getElementById('randomize');
+    const gradientBtn = document.getElementById('gradient');
+    const alternatingBtn = document.getElementById('alternating');
+    const chaseBtn = document.getElementById('chase');
     const ledStrip = document.getElementById('ledStrip');
     
     if (showNumbersBtn) {
@@ -132,6 +148,16 @@ function initializeLEDControls() {
         clearAllBtn.addEventListener('click', () => {
             ledStates = new Array(NUM_LEDS).fill({ r: 0, g: 0, b: 0 });
             updateLEDDisplay();
+            
+            // Send to backend
+            fetch('/api/pattern/clear')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== 'success') {
+                        console.error('Failed to clear LEDs on backend:', data.message);
+                    }
+                })
+                .catch(error => console.error('Error calling clear API:', error));
             
             // Visual feedback
             clearAllBtn.style.transform = 'scale(0.9)';
@@ -148,6 +174,16 @@ function initializeLEDControls() {
                 const rgb = hexToRgb(colorPicker.value);
                 ledStates = new Array(NUM_LEDS).fill(rgb);
                 updateLEDDisplay();
+                
+                // Send to backend
+                fetch(`/api/pattern/fill/${rgb.r}/${rgb.g}/${rgb.b}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status !== 'success') {
+                            console.error('Failed to fill LEDs on backend:', data.message);
+                        }
+                    })
+                    .catch(error => console.error('Error calling fill API:', error));
                 
                 // Visual feedback
                 fillAllBtn.style.transform = 'scale(0.9)';
@@ -167,6 +203,16 @@ function initializeLEDControls() {
             }));
             updateLEDDisplay();
             
+            // Send to backend
+            fetch('/api/pattern/randomize')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== 'success') {
+                        console.error('Failed to randomize LEDs on backend:', data.message);
+                    }
+                })
+                .catch(error => console.error('Error calling randomize API:', error));
+            
             // Visual feedback with longer animation
             randomizeBtn.style.transform = 'scale(0.9) rotate(180deg)';
             setTimeout(() => {
@@ -174,20 +220,100 @@ function initializeLEDControls() {
             }, 300);
         });
     }
+    
+    if (gradientBtn) {
+        gradientBtn.addEventListener('click', () => {
+            createPattern('gradient');
+            // Visual feedback
+            gradientBtn.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                gradientBtn.style.transform = '';
+            }, 150);
+        });
+    }
+    
+    if (alternatingBtn) {
+        alternatingBtn.addEventListener('click', () => {
+            createPattern('alternating');
+            // Visual feedback
+            alternatingBtn.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                alternatingBtn.style.transform = '';
+            }, 150);
+        });
+    }
+    
+    if (chaseBtn) {
+        chaseBtn.addEventListener('click', () => {
+            createPattern('chase');
+            // Visual feedback
+            chaseBtn.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                chaseBtn.style.transform = '';
+            }, 150);
+        });
+    }
 }
 
 // Add LED pattern functions
 function createPattern(patternType) {
+    const colorPicker = document.getElementById('colorPicker');
+    let pattern;
+    
     switch (patternType) {
         case 'gradient':
-            return createGradientPattern();
+            pattern = createGradientPattern();
+            break;
         case 'alternating':
-            return createAlternatingPattern();
+            pattern = createAlternatingPattern();
+            break;
         case 'chase':
-            return createChasePattern();
+            pattern = createChasePattern();
+            break;
         default:
             return ledStates;
     }
+    
+    // Update frontend display
+    ledStates = pattern;
+    updateLEDDisplay();
+    
+    // Send pattern to backend
+    sendPatternToBackend(patternType, pattern);
+    
+    return pattern;
+}
+
+function sendPatternToBackend(patternType, pattern) {
+    const colorPicker = document.getElementById('colorPicker');
+    const rgb = colorPicker ? hexToRgb(colorPicker.value) : { r: 255, g: 0, b: 0 };
+    
+    let apiUrl;
+    switch (patternType) {
+        case 'gradient':
+            // Gradient from current color to blue
+            apiUrl = `/api/pattern/gradient/${rgb.r}/${rgb.g}/${rgb.b}/0/0/255`;
+            break;
+        case 'alternating':
+            // Alternating between current color and green
+            apiUrl = `/api/pattern/alternating/${rgb.r}/${rgb.g}/${rgb.b}/0/255/0`;
+            break;
+        case 'chase':
+            // Chase pattern with current color
+            apiUrl = `/api/pattern/chase/${rgb.r}/${rgb.g}/${rgb.b}`;
+            break;
+        default:
+            return;
+    }
+    
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== 'success') {
+                console.error(`Failed to create ${patternType} pattern on backend:`, data.message);
+            }
+        })
+        .catch(error => console.error(`Error calling ${patternType} pattern API:`, error));
 }
 
 function createGradientPattern() {
