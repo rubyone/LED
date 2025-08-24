@@ -12,6 +12,9 @@ from queue import Queue
 import random
 import time
 import argparse
+import json
+import socket
+import os
 
 # Add site-packages path for inquirer (only on Raspberry Pi)
 import platform
@@ -28,17 +31,56 @@ except ImportError:
     from mock_rpi_ws281x import Adafruit_NeoPixel, Color
     print("Using mock rpi_ws281x library for development")
 
+def load_config():
+    """Load configuration based on hostname and user"""
+    try:
+        hostname = socket.gethostname()
+        config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+        current_user = os.getenv('USER')
+        
+        with open(config_path, 'r') as f:
+            configs = json.load(f)
+            
+        # If running as root, look for root_user flag
+        if current_user == 'root':
+            for machine_config in configs.values():
+                if machine_config.get('root_user', False):
+                    return machine_config
+            # If no root configuration found, try to detect based on hostname
+            if hostname in configs:
+                return configs[hostname]
+            raise ValueError("No root configuration found")
+            
+        # Try to get config for this machine based on username
+        for machine_config in configs.values():
+            if machine_config['username'] == current_user:
+                return machine_config
+                
+        raise ValueError(f"No configuration found for user: {current_user}")
+        
+    except Exception as e:
+        raise RuntimeError(f"Failed to load configuration: {str(e)}")
+
 # LED strip configuration
 @dataclass
 class LEDConfig:
     """Configuration settings for LED strip"""
-    COUNT: int = 41
+    COUNT: int = 41  # This will be overridden
     PIN: int = 18  # GPIO pin (18 uses PWM!)
     FREQ_HZ: int = 800000
     DMA: int = 10
     BRIGHTNESS: int = 255
     INVERT: bool = False
     CHANNEL: int = 0  # set to '1' for GPIOs 13, 19, 41, 45 or 53
+    
+    @classmethod
+    def from_machine_config(cls):
+        """Create config from machine-specific settings"""
+        config = load_config()
+        return cls(
+            COUNT=config['led_count'],
+            PIN=config['led_pin']
+        )
 
 class AnimationType(Enum):
     """Available animation types"""
@@ -343,7 +385,9 @@ def main() -> None:
                        help='LED brightness (0-255)')
     args = parser.parse_args()
 
-    config = LEDConfig(BRIGHTNESS=args.brightness)
+    # Load machine-specific config
+    config = LEDConfig.from_machine_config()
+    config.BRIGHTNESS = args.brightness
     
     try:
         controller = LEDController(config)

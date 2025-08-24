@@ -10,6 +10,7 @@ except ImportError:
 import traceback
 import sys
 import os
+import socket
 
 app = Flask(__name__)
 
@@ -25,10 +26,21 @@ app.logger.addHandler(handler)
 app.logger.setLevel(logging.INFO)
 app.logger.info('LED Server startup')
 
-# Modify the initialization part to include error logging
+def log_system_info():
+    """Log relevant system information for debugging"""
+    app.logger.info(f"Current user: {os.getenv('USER')}")
+    app.logger.info(f"Hostname: {socket.gethostname()}")
+    app.logger.info(f"Working directory: {os.getcwd()}")
+    app.logger.info(f"Script location: {os.path.dirname(os.path.abspath(__file__))}")
+
+log_system_info()
+
+# Modify the initialization part
 try:
-    # Initialize controller with default config
-    controller = LEDController(LEDConfig())
+    app.logger.info("Loading LED configuration...")
+    config = LEDConfig.from_machine_config()
+    app.logger.info(f"Configuration loaded: LED count={config.COUNT}, PIN={config.PIN}")
+    controller = LEDController(config)
     app.logger.info('LED Controller initialized successfully')
 except Exception as e:
     app.logger.error(f'Failed to initialize LED Controller: {str(e)}')
