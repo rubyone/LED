@@ -65,7 +65,7 @@ def load_config():
 @dataclass
 class LEDConfig:
     """Configuration settings for LED strip"""
-    COUNT: int = 41  # This will be overridden
+    COUNT: int = 120  # This will be overridden
     PIN: int = 18  # GPIO pin (18 uses PWM!)
     FREQ_HZ: int = 800000
     DMA: int = 10
