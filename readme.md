@@ -6,107 +6,166 @@ Control your LED animations through an easy-to-use python flask web interface.
 ```sh
 # Remove all ._ files before committing
 find . -name "._*" -delete         
+# LED Strip Web Controller
+
+Web-based control panel for WS281x (NeoPixel) LED strips running on a Raspberry Pi. Provides static colors, animations, brightness control and a simple REST API.
+
+---
+## ✨ Features
+* 🌈 Multiple animations (rainbow, fire effect, theater chase, etc.)
+* 🎨 Static colors + custom RGB picker (web UI)
+* 🔆 Brightness slider
+* 🚦 Live LED preview (browser)
+* 🖥️ Runs as systemd service (auto-start on boot)
+* ♻️ Hot-reload support via watcher script OR API endpoint
+* � Debug helper script for quick diagnostics
+* 📝 Rotating log files under `/var/log/`
+
+---
+## 🧰 Hardware
+| Item | Notes |
+|------|-------|
+| Raspberry Pi | Any model with PWM pin 18 recommended |
+| LED Strip | WS2812/WS281x compatible |
+| Power Supply | Size for LED count (≈60mA per full-white pixel) |
+| Logic Level Shifter (recommended) | 3.3V Pi -> 5V data |
+
+Defaults (overridden by `config.json`):
+```
+GPIO Pin: 18 (PWM)
+LED Count: from config.json entry
+Brightness: 255
+Frequency: 800kHz
+DMA: 10
+Channel: 0
 ```
 
-## Features
+---
+## 📁 Key Files
+| File | Purpose |
+|------|---------|
+| `led_server.py` | Flask web server & API |
+| `LED1.py` | LED controller + animations |
+| `config.json` | Per-machine LED count & pin mapping |
+| `led-server.service` | systemd unit definition |
+| `reload_watcher.sh` | Auto-restart on file change |
+| `debug_snapshot.sh` | Collect diagnostics snapshot |
 
-- 🌈 Multiple animation patterns
-- 🎨 Static color controls
-- 🔆 Brightness adjustment
-- 🌐 Web-based interface
-- 🔄 Auto-restart capability
-- 📝 Detailed logging
-- 🚀 Runs as a system service
+---
+## 🔧 Installation
+```bash
+sudo apt update
+sudo apt install -y python3-pip python3-venv git
+sudo pip3 install rpi_ws281x flask inquirer
+sudo apt install -y inotify-tools  # optional for watcher
 
-## Usage
-
-1. Access the web interface:
-
-## Hardware Setup
-
-- Compatible with WS281x LED strips
-- Default configuration:
-   - LED Count: 41
-   - GPIO Pin: 18
-   - LED Frequency: 800000 Hz
-   - DMA Channel: 10
-   - Brightness: 255
-   - Channel: 0
-
-## Configuration
-
-Edit `LED1.py` to modify LED strip parameters:
-
-3. Common issues:
-
-- Permission denied: Make sure you're running as the 'pi' user
-- Port already in use: Check if another instance is running
-- LED strip not responding: Verify GPIO connections
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a new Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Based on the rpi_ws281x library
-- Web interface built with Flask
-- Systemd service management
-
-```sh
-# Copy the service file to systemd directory
-sudo cp led-server.service /etc/systemd/system/
-
-# Create log files and set permissions
-sudo touch /var/log/led-server.log
-sudo touch /var/log/led-server.error.log
-
-# Make sure log files have correct permissions
+cd /home/pi/LED
+sudo cp led-server.service /etc/systemd/system/led-server.service
+sudo touch /var/log/led-server.log /var/log/led-server.error.log
 sudo chown root:root /var/log/led-server.log /var/log/led-server.error.log
-
-# Reload systemd to recognize the new service
 sudo systemctl daemon-reload
-
-# Enable the service to start on boot
 sudo systemctl enable led-server
-
-# Start the service
 sudo systemctl start led-server
-
-# Stop the service
-sudo systemctl stop led-server
-
-# Disable service from starting on boot
-sudo systemctl disable led-server
-
-# Check service status
-sudo systemctl status led-server
-
-# Restart the service
-sudo systemctl restart led-server
-
-# For viewing logs 
-
-# View real-time logs
-sudo journalctl -u led-server -f
-
-# View service logs
-tail -f /var/log/led-server.log
-
-# View error logs
-tail -f /var/log/led-server.error.log
-
-
 ```
 
-```sh
-sudo cp led-server.logrotate /etc/logrotate.d/led-server
+Browse: `http://raspberrypi.local` (or the Pi's IP).
+
+---
+## ♻️ Reloading After Code Changes
+Changes to `LED1.py`, `led_server.py`, or `config.json` need a reload.
+
+### A. Manual Restart
+```bash
+sudo systemctl restart led-server
+```
+
+### B. API Reload (reinitializes controller)
+```bash
+curl -X POST http://raspberrypi.local/admin/reload
+```
+Use this when only LED count / pin / brightness defaults changed.
+
+### C. Auto Watcher
+```bash
+chmod +x reload_watcher.sh
+./reload_watcher.sh
+```
+Watches: `LED1.py`, `led_server.py`, `config.json`, `led-server.service`.
+
+---
+## 🧪 Testing LED Count Updates
+1. Edit `config.json` (or logic in `LED1.py`).
+2. Apply via API reload or full restart.
+3. Verify log:
+```bash
+grep "Reload successful" /var/log/led-server.log
+```
+
+---
+## 🧵 systemd Commands
+```bash
+sudo systemctl start led-server
+sudo systemctl stop led-server
+sudo systemctl restart led-server
+sudo systemctl status led-server
+sudo systemctl enable led-server
+sudo systemctl disable led-server
+sudo systemctl reload led-server   # sends HUP (ExecReload)
+```
+
+Update service after editing local file:
+```bash
+sudo cp /home/pi/LED/led-server.service /etc/systemd/system/led-server.service
+sudo systemctl daemon-reload
+sudo systemctl restart led-server
+```
+
+---
+## 📊 Logs & Debugging
+```bash
+tail -f /var/log/led-server.log
+tail -f /var/log/led-server.error.log
+sudo journalctl -u led-server -f
+chmod +x debug_snapshot.sh && ./debug_snapshot.sh
+```
+
+Common Issues:
+| Symptom | Fix |
+|---------|-----|
+| No LEDs | Check power & ground continuity, correct GPIO (18) |
+| Flicker / partial | Undersized PSU / voltage drop |
+| PermissionError logs | Ensure service runs as root; log file perms |
+| Blank page in Brave | Disable HTTPS upgrade / Shields for LAN IP |
+
+---
+## 🔐 Reload Endpoint
+`POST /admin/reload` — Only allowed from local LAN (192.168.*) or localhost. Rebuilds controller instance.
+
+---
+## 🧹 Maintenance
+```bash
+sudo cp led-server.logrotate /etc/logrotate.d/led-server  # optional
+find . -name '._*' -delete  # remove macOS metadata
+```
+
+---
+## 🏗 Contributing
+1. Fork → 2. Branch → 3. Commit → 4. PR
+
+## 📄 License
+MIT (see `LICENSE`).
+
+## 🙏 Acknowledgments
+* rpi_ws281x
+* Flask
+* Systemd
+
+---
+## 🔖 Quick Reference
+```bash
+sudo systemctl status led-server
+sudo systemctl restart led-server
+curl -X POST http://raspberrypi.local/admin/reload
+tail -n 50 /var/log/led-server.log
+./debug_snapshot.sh
 ```

@@ -1,17 +1,24 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import logging
 from logging.handlers import RotatingFileHandler
 from LED1 import LEDController, LEDConfig, AnimationType, ColorPreset
-from rpi_ws281x import Color
+# Import Color from appropriate library based on platform
+try:
+    from rpi_ws281x import Color
+except ImportError:
+    from mock_rpi_ws281x import Color
 import traceback
 import sys
 import os
+import socket
 
 app = Flask(__name__)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
-handler = RotatingFileHandler('/var/log/led-server.log', maxBytes=10000, backupCount=3)
+# Use local directory for log file on development systems
+log_file = '/var/log/led-server.log' if os.path.exists('/var/log') and os.access('/var/log', os.W_OK) else 'led-server.log'
+handler = RotatingFileHandler(log_file, maxBytes=10000, backupCount=3)
 handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
 ))
@@ -19,10 +26,21 @@ app.logger.addHandler(handler)
 app.logger.setLevel(logging.INFO)
 app.logger.info('LED Server startup')
 
-# Modify the initialization part to include error logging
+def log_system_info():
+    """Log relevant system information for debugging"""
+    app.logger.info(f"Current user: {os.getenv('USER')}")
+    app.logger.info(f"Hostname: {socket.gethostname()}")
+    app.logger.info(f"Working directory: {os.getcwd()}")
+    app.logger.info(f"Script location: {os.path.dirname(os.path.abspath(__file__))}")
+
+log_system_info()
+
+# Modify the initialization part
 try:
-    # Initialize controller with default config
-    controller = LEDController(LEDConfig())
+    app.logger.info("Loading LED configuration...")
+    config = LEDConfig.from_machine_config()
+    app.logger.info(f"Configuration loaded: LED count={config.COUNT}, PIN={config.PIN}")
+    controller = LEDController(config)
     app.logger.info('LED Controller initialized successfully')
 except Exception as e:
     app.logger.error(f'Failed to initialize LED Controller: {str(e)}')
@@ -32,6 +50,8 @@ except Exception as e:
 @app.route('/')
 def index():
     app.logger.info('Homepage accessed')
+    app.logger.info(f'Request from IP: {request.remote_addr}')
+    app.logger.info(f'User Agent: {request.headers.get("User-Agent")}')
     return render_template('index.html')
 
 @app.route('/api/animation/<name>')
@@ -113,6 +133,27 @@ def get_leds():
     app.logger.info(f'Getting LEDs: {controller.get_leds()}')
     return jsonify({'status': 'success', 'leds': controller.get_leds()})
 
+@app.route('/api/test')
+def test():
+    app.logger.info('Test endpoint accessed')
+    return jsonify({'status': 'success', 'message': 'Server is working!', 'timestamp': str(__import__('datetime').datetime.now())})
+
+@app.route('/simple')
+def simple():
+    app.logger.info('Simple test page accessed')
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head><title>LED Server Test</title></head>
+    <body>
+        <h1>LED Server is Working!</h1>
+        <p>If you can see this page, the server is responding correctly.</p>
+        <p>Timestamp: ''' + str(__import__('datetime').datetime.now()) + '''</p>
+        <a href="/">Go to LED Control Panel</a>
+    </body>
+    </html>
+    '''
+
 # @app.route('/api/test_color/<name>')
 # def test_color(name):
 #     try:
@@ -139,10 +180,42 @@ def cleanup():
 import atexit
 atexit.register(cleanup)
 
+# Add a global accessor to allow reloading
+
+def reinitialize_controller():
+    global controller, config
+    app.logger.info('Reinitializing LED controller (on-demand reload)')
+    try:
+        controller.cleanup()
+    except Exception:
+        app.logger.warning('Cleanup during reload encountered an issue (continuing)')
+    try:
+        config = LEDConfig.from_machine_config()
+        controller = LEDController(config)
+        app.logger.info('Reload successful: LED count=%s PIN=%s', config.COUNT, config.PIN)
+        return True, ''
+    except Exception as e:
+        app.logger.error('Reload failed: %s', e)
+        return False, str(e)
+
+@app.route('/admin/reload', methods=['POST'])
+def admin_reload():
+    # Simple safeguard: require local network (very light check)
+    remote = request.remote_addr
+    if not remote.startswith('192.168.') and remote not in ('127.0.0.1', '::1'):
+        return jsonify({'status': 'error', 'message': 'Unauthorized network'}), 403
+    ok, msg = reinitialize_controller()
+    if ok:
+        return jsonify({'status': 'success', 'message': 'Controller reloaded', 'led_count': config.COUNT})
+    return jsonify({'status': 'error', 'message': msg}), 500
+
 if __name__ == '__main__':
-    # Make sure to run with sudo
-    if os.geteuid() != 0:
+    # Make sure to run with sudo (only needed on Raspberry Pi with real hardware)
+    using_mock = 'mock_rpi_ws281x' in sys.modules
+    if not using_mock and os.geteuid() != 0:
         app.logger.error("This script must be run with sudo privileges")
         sys.exit(1)
+    elif using_mock:
+        app.logger.info("Running in development mode with mock hardware")
     
-    app.run(host='0.0.0.0', port=5000) 
+    app.run(host='0.0.0.0', port=80, debug=False)

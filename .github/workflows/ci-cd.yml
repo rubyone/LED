@@ -1,0 +1,28 @@
+# name: CI/CD Pipeline
+
+# on:
+#   push:
+#     branches:
+#       - develop  # Trigger the pipeline on pushes to the develop branch
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v2
+
+#     - name: Set up SSH
+#       run: |
+#         echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
+#         chmod 600 private_key
+#         eval "$(ssh-agent -s)"
+#         ssh-add private_key
+#         rm private_key  # Clean up the private key file after adding it to the agent
+#       env:
+#         SSH_AUTH_SOCK: /tmp/ssh-agent.sock
+
+#     - name: Deploy to Raspberry Pi
+#       run: |
+#         ssh pi@192.168.178.73 'cd ~/LED && ./deploy_script.sh'
