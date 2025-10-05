@@ -9,13 +9,346 @@ function initializeLEDStrip() {
     const ledStrip = document.getElementById('ledStrip');
     ledStrip.innerHTML = ''; // Clear existing LEDs
     
-    // Create LED elements
+    // Create LED elements with enhanced features
     for (let i = 0; i < NUM_LEDS; i++) {
+        const ledContainer = document.createElement('div');
+        ledContainer.className = 'led-container';
+        
         const led = document.createElement('div');
         led.className = 'led';
         led.id = `led-${i}`;
-        ledStrip.appendChild(led);
+        led.setAttribute('data-index', i);
+        
+        // Add LED number indicator
+        const ledNumber = document.createElement('div');
+        ledNumber.className = 'led-number';
+        ledNumber.textContent = i + 1;
+        
+        // Add click handler for individual LED control
+        led.addEventListener('click', () => handleLEDClick(i));
+        led.addEventListener('mouseenter', () => showLEDInfo(i));
+        led.addEventListener('mouseleave', () => hideLEDInfo());
+        
+        ledContainer.appendChild(led);
+        ledContainer.appendChild(ledNumber);
+        ledStrip.appendChild(ledContainer);
     }
+    
+    // Add LED info tooltip
+    createLEDInfoTooltip();
+}
+
+function createLEDInfoTooltip() {
+    const tooltip = document.createElement('div');
+    tooltip.id = 'led-tooltip';
+    tooltip.className = 'led-tooltip';
+    document.body.appendChild(tooltip);
+}
+
+function showLEDInfo(index) {
+    const tooltip = document.getElementById('led-tooltip');
+    const led = document.getElementById(`led-${index}`);
+    const state = ledStates[index] || { r: 0, g: 0, b: 0 };
+    
+    if (tooltip && led) {
+        const rect = led.getBoundingClientRect();
+        tooltip.innerHTML = `
+            <div class="tooltip-content">
+                <div class="tooltip-header">LED ${index + 1}</div>
+                <div class="tooltip-color">
+                    <div class="color-preview" style="background: rgb(${state.r}, ${state.g}, ${state.b})"></div>
+                    <div class="color-values">
+                        <div>R: ${state.r}</div>
+                        <div>G: ${state.g}</div>
+                        <div>B: ${state.b}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        tooltip.style.left = `${rect.left + rect.width / 2}px`;
+        tooltip.style.top = `${rect.top - 10}px`;
+        tooltip.style.opacity = '1';
+        tooltip.style.visibility = 'visible';
+    }
+}
+
+function hideLEDInfo() {
+    const tooltip = document.getElementById('led-tooltip');
+    if (tooltip) {
+        tooltip.style.opacity = '0';
+        tooltip.style.visibility = 'hidden';
+    }
+}
+
+function handleLEDClick(index) {
+    // Toggle individual LED or apply current color picker color
+    const colorPicker = document.getElementById('colorPicker');
+    if (colorPicker) {
+        const hex = colorPicker.value;
+        const rgb = hexToRgb(hex);
+        
+        // Toggle LED state
+        let finalColor;
+        if (!ledStates[index] || (ledStates[index].r === 0 && ledStates[index].g === 0 && ledStates[index].b === 0)) {
+            ledStates[index] = rgb;
+            finalColor = rgb;
+        } else {
+            ledStates[index] = { r: 0, g: 0, b: 0 };
+            finalColor = { r: 0, g: 0, b: 0 };
+        }
+        
+        updateLEDDisplay();
+        
+        // Send to backend
+        fetch(`/api/led/${index}/${finalColor.r}/${finalColor.g}/${finalColor.b}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'success') {
+                    console.error('Failed to update LED on backend:', data.message);
+                }
+            })
+            .catch(error => console.error('Error calling individual LED API:', error));
+        
+        // Add visual feedback
+        const led = document.getElementById(`led-${index}`);
+        led.classList.add('clicked');
+        setTimeout(() => led.classList.remove('clicked'), 200);
+    }
+}
+
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : { r: 255, g: 0, b: 0 };
+}
+
+// Initialize LED controls
+function initializeLEDControls() {
+    const showNumbersBtn = document.getElementById('showNumbers');
+    const clearAllBtn = document.getElementById('clearAll');
+    const fillAllBtn = document.getElementById('fillAll');
+    const randomizeBtn = document.getElementById('randomize');
+    const gradientBtn = document.getElementById('gradient');
+    const alternatingBtn = document.getElementById('alternating');
+    const chaseBtn = document.getElementById('chase');
+    const ledStrip = document.getElementById('ledStrip');
+    
+    if (showNumbersBtn) {
+        showNumbersBtn.addEventListener('click', () => {
+            ledStrip.classList.toggle('show-numbers');
+            showNumbersBtn.classList.toggle('active');
+        });
+    }
+    
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', () => {
+            ledStates = new Array(NUM_LEDS).fill({ r: 0, g: 0, b: 0 });
+            updateLEDDisplay();
+            
+            // Send to backend
+            fetch('/api/pattern/clear')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== 'success') {
+                        console.error('Failed to clear LEDs on backend:', data.message);
+                    }
+                })
+                .catch(error => console.error('Error calling clear API:', error));
+            
+            // Visual feedback
+            clearAllBtn.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                clearAllBtn.style.transform = '';
+            }, 150);
+        });
+    }
+    
+    if (fillAllBtn) {
+        fillAllBtn.addEventListener('click', () => {
+            const colorPicker = document.getElementById('colorPicker');
+            if (colorPicker) {
+                const rgb = hexToRgb(colorPicker.value);
+                ledStates = new Array(NUM_LEDS).fill(rgb);
+                updateLEDDisplay();
+                
+                // Send to backend
+                fetch(`/api/pattern/fill/${rgb.r}/${rgb.g}/${rgb.b}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status !== 'success') {
+                            console.error('Failed to fill LEDs on backend:', data.message);
+                        }
+                    })
+                    .catch(error => console.error('Error calling fill API:', error));
+                
+                // Visual feedback
+                fillAllBtn.style.transform = 'scale(0.9)';
+                setTimeout(() => {
+                    fillAllBtn.style.transform = '';
+                }, 150);
+            }
+        });
+    }
+    
+    if (randomizeBtn) {
+        randomizeBtn.addEventListener('click', () => {
+            ledStates = new Array(NUM_LEDS).fill().map(() => ({
+                r: Math.floor(Math.random() * 256),
+                g: Math.floor(Math.random() * 256),
+                b: Math.floor(Math.random() * 256)
+            }));
+            updateLEDDisplay();
+            
+            // Send to backend
+            fetch('/api/pattern/randomize')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== 'success') {
+                        console.error('Failed to randomize LEDs on backend:', data.message);
+                    }
+                })
+                .catch(error => console.error('Error calling randomize API:', error));
+            
+            // Visual feedback with longer animation
+            randomizeBtn.style.transform = 'scale(0.9) rotate(180deg)';
+            setTimeout(() => {
+                randomizeBtn.style.transform = '';
+            }, 300);
+        });
+    }
+    
+    if (gradientBtn) {
+        gradientBtn.addEventListener('click', () => {
+            createPattern('gradient');
+            // Visual feedback
+            gradientBtn.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                gradientBtn.style.transform = '';
+            }, 150);
+        });
+    }
+    
+    if (alternatingBtn) {
+        alternatingBtn.addEventListener('click', () => {
+            createPattern('alternating');
+            // Visual feedback
+            alternatingBtn.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                alternatingBtn.style.transform = '';
+            }, 150);
+        });
+    }
+    
+    if (chaseBtn) {
+        chaseBtn.addEventListener('click', () => {
+            createPattern('chase');
+            // Visual feedback
+            chaseBtn.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                chaseBtn.style.transform = '';
+            }, 150);
+        });
+    }
+}
+
+// Add LED pattern functions
+function createPattern(patternType) {
+    const colorPicker = document.getElementById('colorPicker');
+    let pattern;
+    
+    switch (patternType) {
+        case 'gradient':
+            pattern = createGradientPattern();
+            break;
+        case 'alternating':
+            pattern = createAlternatingPattern();
+            break;
+        case 'chase':
+            pattern = createChasePattern();
+            break;
+        default:
+            return ledStates;
+    }
+    
+    // Update frontend display
+    ledStates = pattern;
+    updateLEDDisplay();
+    
+    // Send pattern to backend
+    sendPatternToBackend(patternType, pattern);
+    
+    return pattern;
+}
+
+function sendPatternToBackend(patternType, pattern) {
+    const colorPicker = document.getElementById('colorPicker');
+    const rgb = colorPicker ? hexToRgb(colorPicker.value) : { r: 255, g: 0, b: 0 };
+    
+    let apiUrl;
+    switch (patternType) {
+        case 'gradient':
+            // Gradient from current color to blue
+            apiUrl = `/api/pattern/gradient/${rgb.r}/${rgb.g}/${rgb.b}/0/0/255`;
+            break;
+        case 'alternating':
+            // Alternating between current color and green
+            apiUrl = `/api/pattern/alternating/${rgb.r}/${rgb.g}/${rgb.b}/0/255/0`;
+            break;
+        case 'chase':
+            // Chase pattern with current color
+            apiUrl = `/api/pattern/chase/${rgb.r}/${rgb.g}/${rgb.b}`;
+            break;
+        default:
+            return;
+    }
+    
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status !== 'success') {
+                console.error(`Failed to create ${patternType} pattern on backend:`, data.message);
+            }
+        })
+        .catch(error => console.error(`Error calling ${patternType} pattern API:`, error));
+}
+
+function createGradientPattern() {
+    const colorPicker = document.getElementById('colorPicker');
+    const startColor = colorPicker ? hexToRgb(colorPicker.value) : { r: 255, g: 0, b: 0 };
+    const endColor = { r: 0, g: 0, b: 255 };
+    
+    return new Array(NUM_LEDS).fill().map((_, i) => {
+        const ratio = i / (NUM_LEDS - 1);
+        return {
+            r: Math.round(startColor.r + (endColor.r - startColor.r) * ratio),
+            g: Math.round(startColor.g + (endColor.g - startColor.g) * ratio),
+            b: Math.round(startColor.b + (endColor.b - startColor.b) * ratio)
+        };
+    });
+}
+
+function createAlternatingPattern() {
+    const colorPicker = document.getElementById('colorPicker');
+    const color1 = colorPicker ? hexToRgb(colorPicker.value) : { r: 255, g: 0, b: 0 };
+    const color2 = { r: 0, g: 255, b: 0 };
+    
+    return new Array(NUM_LEDS).fill().map((_, i) => 
+        i % 2 === 0 ? color1 : color2
+    );
+}
+
+function createChasePattern() {
+    const colorPicker = document.getElementById('colorPicker');
+    const activeColor = colorPicker ? hexToRgb(colorPicker.value) : { r: 255, g: 255, b: 255 };
+    const offColor = { r: 0, g: 0, b: 0 };
+    
+    return new Array(NUM_LEDS).fill().map((_, i) => 
+        i % 3 === 0 ? activeColor : offColor
+    );
 }
 
 function updateLEDDisplay() {
@@ -28,15 +361,44 @@ function updateLEDDisplay() {
     if (currentAnimation) return;
 
     ledStates.forEach((state, index) => {
-        const led = document.getElementById(`led-${index}`);
-        if (led) {
-            if (state && typeof state.r !== 'undefined') {
-                led.style.backgroundColor = `rgb(${state.r}, ${state.g}, ${state.b})`;
-                const brightness = parseInt(document.getElementById('brightnessSlider').value);
-                // led.style.opacity = brightness / 255;
-            }
-        }
+        updateSingleLED(index, state);
     });
+}
+
+function updateSingleLED(index, state) {
+    const led = document.getElementById(`led-${index}`);
+    if (led && state && typeof state.r !== 'undefined') {
+        const brightness = parseInt(document.getElementById('brightnessSlider')?.value || 255);
+        const adjustedR = Math.round((state.r * brightness) / 255);
+        const adjustedG = Math.round((state.g * brightness) / 255);
+        const adjustedB = Math.round((state.b * brightness) / 255);
+        
+        const color = `rgb(${adjustedR}, ${adjustedG}, ${adjustedB})`;
+        led.style.backgroundColor = color;
+        led.style.color = color; // For the glow effect
+        
+        // Add/remove active class based on whether LED is on
+        const isOn = adjustedR > 0 || adjustedG > 0 || adjustedB > 0;
+        led.classList.toggle('active', isOn);
+        
+        // Calculate and apply intensity for realistic glow
+        const intensity = (adjustedR + adjustedG + adjustedB) / 3;
+        const glowIntensity = Math.min(intensity / 255, 1);
+        
+        if (isOn) {
+            led.style.boxShadow = `
+                inset 0 2px 4px rgba(0, 0, 0, 0.3),
+                0 4px 15px rgba(0, 0, 0, 0.4),
+                0 0 ${20 * glowIntensity}px ${color},
+                0 0 ${40 * glowIntensity}px ${color}
+            `;
+        } else {
+            led.style.boxShadow = `
+                inset 0 2px 4px rgba(0, 0, 0, 0.5),
+                0 2px 8px rgba(0, 0, 0, 0.3)
+            `;
+        }
+    }
 }
 
 function isInitialized() {
@@ -153,12 +515,7 @@ function theaterChaseRainbowStep(step) {
 
 function updateLEDsWithStates() {
     ledStates.forEach((state, index) => {
-        const led = document.getElementById(`led-${index}`);
-        if (led) {
-            led.style.backgroundColor = `rgb(${state.r}, ${state.g}, ${state.b})`;
-            const brightness = parseInt(document.getElementById('brightnessSlider').value);
-            // led.style.opacity = brightness / 255;
-        }
+        updateSingleLED(index, state);
     });
 }
 
@@ -169,8 +526,11 @@ export default {
     getLedStates,
     setLedStates,
     initializeLEDStrip,
+    initializeLEDControls,
     updateLEDDisplay,
+    updateSingleLED,
     isInitialized,
     startAnimation,
-    stopAnimation
+    stopAnimation,
+    createPattern
 };
