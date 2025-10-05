@@ -12,6 +12,7 @@ WorkingDirectory=/home/pi/LED
 # WorkingDirectory=/home/ruby0ne/LED
 Environment=PYTHONUNBUFFERED=1
 ExecStart=/usr/bin/python3 /home/pi/LED/led_server.py
+ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 RestartSec=10s
 StandardOutput=append:/var/log/led-server.log

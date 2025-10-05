@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import logging
 from logging.handlers import RotatingFileHandler
 from LED1 import LEDController, LEDConfig, AnimationType, ColorPreset
@@ -44,6 +44,8 @@ except Exception as e:
 @app.route('/')
 def index():
     app.logger.info('Homepage accessed')
+    app.logger.info(f'Request from IP: {request.remote_addr}')
+    app.logger.info(f'User Agent: {request.headers.get("User-Agent")}')
     return render_template('index.html')
 
 @app.route('/api/animation/<name>')
@@ -125,6 +127,27 @@ def get_leds():
     app.logger.info(f'Getting LEDs: {controller.get_leds()}')
     return jsonify({'status': 'success', 'leds': controller.get_leds()})
 
+@app.route('/api/test')
+def test():
+    app.logger.info('Test endpoint accessed')
+    return jsonify({'status': 'success', 'message': 'Server is working!', 'timestamp': str(__import__('datetime').datetime.now())})
+
+@app.route('/simple')
+def simple():
+    app.logger.info('Simple test page accessed')
+    return '''
+    <!DOCTYPE html>
+    <html>
+    <head><title>LED Server Test</title></head>
+    <body>
+        <h1>LED Server is Working!</h1>
+        <p>If you can see this page, the server is responding correctly.</p>
+        <p>Timestamp: ''' + str(__import__('datetime').datetime.now()) + '''</p>
+        <a href="/">Go to LED Control Panel</a>
+    </body>
+    </html>
+    '''
+
 # @app.route('/api/test_color/<name>')
 # def test_color(name):
 #     try:
@@ -151,10 +174,39 @@ def cleanup():
 import atexit
 atexit.register(cleanup)
 
+# Add a global accessor to allow reloading
+
+def reinitialize_controller():
+    global controller, config
+    app.logger.info('Reinitializing LED controller (on-demand reload)')
+    try:
+        controller.cleanup()
+    except Exception:
+        app.logger.warning('Cleanup during reload encountered an issue (continuing)')
+    try:
+        config = LEDConfig.from_machine_config()
+        controller = LEDController(config)
+        app.logger.info('Reload successful: LED count=%s PIN=%s', config.COUNT, config.PIN)
+        return True, ''
+    except Exception as e:
+        app.logger.error('Reload failed: %s', e)
+        return False, str(e)
+
+@app.route('/admin/reload', methods=['POST'])
+def admin_reload():
+    # Simple safeguard: require local network (very light check)
+    remote = request.remote_addr
+    if not remote.startswith('192.168.') and remote not in ('127.0.0.1', '::1'):
+        return jsonify({'status': 'error', 'message': 'Unauthorized network'}), 403
+    ok, msg = reinitialize_controller()
+    if ok:
+        return jsonify({'status': 'success', 'message': 'Controller reloaded', 'led_count': config.COUNT})
+    return jsonify({'status': 'error', 'message': msg}), 500
+
 if __name__ == '__main__':
     # Make sure to run with sudo
     if os.geteuid() != 0:
         app.logger.error("This script must be run with sudo privileges")
         sys.exit(1)
     
-    app.run(host='0.0.0.0', port=5000) 
+    app.run(host='0.0.0.0', port=80, debug=False)

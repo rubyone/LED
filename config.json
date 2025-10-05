@@ -1,7 +1,7 @@
 {
     "raspberry_pi_1": {
         "username": "pi",
-        "led_count": 41,
+        "led_count": 121,
         "led_pin": 18,
         "root_user": true
     },
