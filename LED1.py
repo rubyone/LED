@@ -16,10 +16,20 @@ import json
 import socket
 import os
 
-# Add site-packages path for inquirer
-sys.path.insert(0, "/home/pi/.local/lib/python3.9/site-packages/")
+# Add site-packages path for inquirer (only on Raspberry Pi)
+import platform
+if platform.machine().startswith('arm'):
+    sys.path.insert(0, "/home/pi/.local/lib/python3.9/site-packages/")
+
 import inquirer
-from rpi_ws281x import Adafruit_NeoPixel, Color
+
+# Import appropriate LED library based on platform
+try:
+    from rpi_ws281x import Adafruit_NeoPixel, Color
+    print("Using real rpi_ws281x library")
+except ImportError:
+    from mock_rpi_ws281x import Adafruit_NeoPixel, Color
+    print("Using mock rpi_ws281x library for development")
 
 def load_config():
     """Load configuration based on hostname and user"""
@@ -272,6 +282,68 @@ class LEDController:
     def get_leds(self) -> int:
         """Get the number of LEDs"""
         return self.strip.numPixels()
+    
+    def clear_all(self) -> None:
+        """Turn off all LEDs"""
+        self.stop_current_animation()
+        for i in range(self.strip.numPixels()):
+            self.strip.setPixelColor(i, Color(0, 0, 0))
+        self.strip.show()
+    
+    def fill_all(self, color: int) -> None:
+        """Fill all LEDs with the specified color"""
+        self.stop_current_animation()
+        for i in range(self.strip.numPixels()):
+            self.strip.setPixelColor(i, color)
+        self.strip.show()
+    
+    def randomize(self) -> None:
+        """Set each LED to a random color"""
+        self.stop_current_animation()
+        for i in range(self.strip.numPixels()):
+            r = random.randint(0, 255)
+            g = random.randint(0, 255)
+            b = random.randint(0, 255)
+            self.strip.setPixelColor(i, Color(r, g, b))
+        self.strip.show()
+    
+    def create_gradient(self, start_color: Tuple[int, int, int], end_color: Tuple[int, int, int]) -> None:
+        """Create a gradient pattern from start_color to end_color"""
+        self.stop_current_animation()
+        num_leds = self.strip.numPixels()
+        
+        for i in range(num_leds):
+            ratio = i / (num_leds - 1) if num_leds > 1 else 0
+            r = int(start_color[0] + (end_color[0] - start_color[0]) * ratio)
+            g = int(start_color[1] + (end_color[1] - start_color[1]) * ratio)
+            b = int(start_color[2] + (end_color[2] - start_color[2]) * ratio)
+            self.strip.setPixelColor(i, Color(r, g, b))
+        
+        self.strip.show()
+    
+    def create_alternating_pattern(self, color1: int, color2: int) -> None:
+        """Create an alternating pattern with two colors"""
+        self.stop_current_animation()
+        for i in range(self.strip.numPixels()):
+            color = color1 if i % 2 == 0 else color2
+            self.strip.setPixelColor(i, color)
+        self.strip.show()
+    
+    def create_chase_pattern(self, color: int, spacing: int = 3) -> None:
+        """Create a chase pattern with specified spacing"""
+        self.stop_current_animation()
+        for i in range(self.strip.numPixels()):
+            if i % spacing == 0:
+                self.strip.setPixelColor(i, color)
+            else:
+                self.strip.setPixelColor(i, Color(0, 0, 0))
+        self.strip.show()
+    
+    def set_individual_led(self, index: int, color: int) -> None:
+        """Set a specific LED to a color"""
+        if 0 <= index < self.strip.numPixels():
+            self.strip.setPixelColor(index, color)
+            self.strip.show()
     
     def set_custom_color(self) -> None:
         """Set a custom color from user input"""

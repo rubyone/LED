@@ -2,7 +2,11 @@ from flask import Flask, render_template, jsonify, request
 import logging
 from logging.handlers import RotatingFileHandler
 from LED1 import LEDController, LEDConfig, AnimationType, ColorPreset
-from rpi_ws281x import Color
+# Import Color from appropriate library based on platform
+try:
+    from rpi_ws281x import Color
+except ImportError:
+    from mock_rpi_ws281x import Color
 import traceback
 import sys
 import os
@@ -12,7 +16,9 @@ app = Flask(__name__)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
-handler = RotatingFileHandler('/var/log/led-server.log', maxBytes=10000, backupCount=3)
+# Use local directory for log file on development systems
+log_file = '/var/log/led-server.log' if os.path.exists('/var/log') and os.access('/var/log', os.W_OK) else 'led-server.log'
+handler = RotatingFileHandler(log_file, maxBytes=10000, backupCount=3)
 handler.setFormatter(logging.Formatter(
     '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
 ))
@@ -204,9 +210,12 @@ def admin_reload():
     return jsonify({'status': 'error', 'message': msg}), 500
 
 if __name__ == '__main__':
-    # Make sure to run with sudo
-    if os.geteuid() != 0:
+    # Make sure to run with sudo (only needed on Raspberry Pi with real hardware)
+    using_mock = 'mock_rpi_ws281x' in sys.modules
+    if not using_mock and os.geteuid() != 0:
         app.logger.error("This script must be run with sudo privileges")
         sys.exit(1)
+    elif using_mock:
+        app.logger.info("Running in development mode with mock hardware")
     
     app.run(host='0.0.0.0', port=80, debug=False)
