@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muttertagskarte – {{ to }}</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* Theme variables */
+        body.theme-rose {
+            --bg1: #ffe0f0; --bg2: #fff0f7; --bg3: #fce4ec;
+            --accent: #c2185b; --accent2: #e91e8c;
+            --card-from: #fff0f7; --card-to: #fce4ec;
+            --border: #f48fb1;
+            --text-h: #880e4f; --text-body: #5d2037;
+        }
+        body.theme-lavender {
+            --bg1: #f3e5f5; --bg2: #ede7f6; --bg3: #e8eaf6;
+            --accent: #6a1b9a; --accent2: #8e24aa;
+            --card-from: #f3e5f5; --card-to: #ede7f6;
+            --border: #ce93d8;
+            --text-h: #4a148c; --text-body: #2e1043;
+        }
+        body.theme-peach {
+            --bg1: #fbe9e7; --bg2: #fff3e0; --bg3: #ffe0b2;
+            --accent: #bf360c; --accent2: #e64a19;
+            --card-from: #fbe9e7; --card-to: #fff3e0;
+            --border: #ffab91;
+            --text-h: #bf360c; --text-body: #4e342e;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 50%, var(--bg3) 100%);
+            font-family: 'Segoe UI', 'Georgia', serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        /* Floating petals */
+        .petal {
+            position: fixed;
+            font-size: 1.4rem;
+            animation: fall linear infinite;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-60px) rotate(0deg); opacity: 0.7; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Card */
+        .envelope-wrapper {
+            perspective: 800px;
+        }
+
+        .card {
+            background: linear-gradient(145deg, var(--card-from), var(--card-to));
+            border: 2px solid var(--border);
+            border-radius: 28px;
+            box-shadow: 0 12px 50px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08);
+            padding: 3rem 2.5rem;
+            width: 100%;
+            max-width: 520px;
+            text-align: center;
+            animation: openCard 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes openCard {
+            0% { opacity: 0; transform: scale(0.7) rotateX(20deg); }
+            100% { opacity: 1; transform: scale(1) rotateX(0deg); }
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 120px; height: 120px;
+            background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .deco-top {
+            font-size: 2.4rem;
+            margin-bottom: 0.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .card-tag {
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.3rem;
+            opacity: 0.75;
+        }
+
+        .to-name {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-h);
+            margin-bottom: 1.4rem;
+            line-height: 1.2;
+        }
+
+        .divider {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            border-radius: 2px;
+            margin: 0 auto 1.4rem;
+        }
+
+        .message {
+            font-size: 1.15rem;
+            line-height: 1.7;
+            color: var(--text-body);
+            font-style: italic;
+            white-space: pre-wrap;
+            margin-bottom: 1.8rem;
+            padding: 0 0.5rem;
+        }
+
+        .from-line {
+            font-size: 1rem;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .hearts {
+            font-size: 1.5rem;
+            margin-top: 0.5rem;
+            letter-spacing: 0.2rem;
+        }
+
+        /* Actions */
+        .actions {
+            margin-top: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.65rem 1.3rem;
+            border-radius: 12px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent2), var(--accent));
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--accent);
+            border: 2px solid var(--border);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #333;
+            color: white;
+            padding: 0.7rem 1.4rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .led-status {
+            font-size: 0.78rem;
+            color: var(--accent);
+            opacity: 0.7;
+            margin-top: 0.4rem;
+            min-height: 1.2em;
+        }
+    </style>
+</head>
+<body class="theme-{{ theme }}">
+
+    <div class="card">
+        <div class="deco-top">🌸💝🌺</div>
+        <div class="card-tag">Alles Liebe zum Muttertag</div>
+        <div class="to-name">Liebe {{ to }},</div>
+        <div class="divider"></div>
+        <div class="message">{{ message }}</div>
+        <div class="from-line">In Liebe, {{ from_name }} 💖</div>
+        <div class="hearts">🌷❤️🌷</div>
+
+        <div class="actions">
+            <button class="btn btn-primary" onclick="copyLink()">🔗 Link teilen</button>
+            <button class="btn btn-secondary" id="ledBtn" onclick="activateLED()">✨ LEDs aktivieren</button>
+            <a href="/mothers-day" class="btn btn-secondary">🖊️ Neue Karte</a>
+        </div>
+        <div class="led-status" id="ledStatus"></div>
+    </div>
+
+    <div class="toast" id="toast">Link kopiert! 📋</div>
+
+    <script>
+        const THEMES = {
+            rose: { petals: ['🌸', '🌺', '🌷', '💮'], led: 'mothers_day_rose' },
+            lavender: { petals: ['💜', '🌸', '🪻', '✿'], led: 'mothers_day_lavender' },
+            peach: { petals: ['🍑', '🌼', '🌸', '✿'], led: 'mothers_day_peach' },
+        };
+        const theme = '{{ theme }}';
+        const cfg = THEMES[theme] || THEMES.rose;
+
+        // Falling petals
+        function createPetal() {
+            const el = document.createElement('div');
+            el.className = 'petal';
+            el.textContent = cfg.petals[Math.floor(Math.random() * cfg.petals.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.fontSize = (1 + Math.random() * 0.8) + 'rem';
+            const dur = 6 + Math.random() * 6;
+            el.style.animationDuration = dur + 's';
+            el.style.animationDelay = Math.random() * 4 + 's';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), (dur + 5) * 1000);
+        }
+        for (let i = 0; i < 18; i++) setTimeout(createPetal, i * 300);
+        setInterval(createPetal, 2000);
+
+        // Auto-trigger LED on load
+        activateLED();
+
+        function activateLED() {
+            const status = document.getElementById('ledStatus');
+            status.textContent = '⏳ LEDs werden aktiviert...';
+            fetch('/api/animation/' + cfg.led)
+                .then(r => r.json())
+                .then(d => {
+                    status.textContent = d.status === 'success' ? '✅ LEDs leuchten jetzt festlich!' : '⚠️ LED-Verbindung nicht verfügbar';
+                })
+                .catch(() => {
+                    status.textContent = '⚠️ LED-Verbindung nicht verfügbar';
+                });
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                const t = document.getElementById('toast');
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 2500);
+            });
+        }
+    </script>
+</body>
+</html>

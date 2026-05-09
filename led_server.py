@@ -54,6 +54,20 @@ def index():
     app.logger.info(f'User Agent: {request.headers.get("User-Agent")}')
     return render_template('index.html')
 
+@app.route('/mothers-day')
+def mothers_day():
+    return render_template('mothers_day.html')
+
+@app.route('/mothers-day/card')
+def mothers_day_card():
+    from_name = request.args.get('from', 'Jemand der dich liebt')
+    to = request.args.get('to', 'Mama')
+    message = request.args.get('message', 'Alles Liebe zum Muttertag!')
+    theme = request.args.get('theme', 'rose')
+    if theme not in ('rose', 'lavender', 'peach'):
+        theme = 'rose'
+    return render_template('mothers_day_card.html', from_name=from_name, to=to, message=message, theme=theme)
+
 @app.route('/api/animation/<name>')
 def run_animation(name):
     controller.stop_current_animation()
@@ -87,6 +101,22 @@ def run_animation(name):
         elif name == 'theater_chase_rainbow':
             app.logger.info('Starting theater chase rainbow animation')
             controller.start_animation(AnimationType.THEATER_CHASE_RAINBOW)
+        # Mother's Day themed colors
+        elif name == 'mothers_day_rose':
+            app.logger.info('Setting mothers day rose color')
+            for i in range(controller.strip.numPixels()):
+                controller.strip.setPixelColor(i, Color(255, 60, 120))
+            controller.strip.show()
+        elif name == 'mothers_day_lavender':
+            app.logger.info('Setting mothers day lavender color')
+            for i in range(controller.strip.numPixels()):
+                controller.strip.setPixelColor(i, Color(160, 60, 220))
+            controller.strip.show()
+        elif name == 'mothers_day_peach':
+            app.logger.info('Setting mothers day peach color')
+            for i in range(controller.strip.numPixels()):
+                controller.strip.setPixelColor(i, Color(255, 120, 60))
+            controller.strip.show()
         # Handle control commands
         elif name == 'stop':
             app.logger.info('Stopping animation')

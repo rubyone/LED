@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muttertagsgrüße</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ffe0f0 0%, #fff0f7 40%, #fce4ec 100%);
+            font-family: 'Segoe UI', 'Georgia', serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .flowers {
+            font-size: 3rem;
+            letter-spacing: 0.3rem;
+            margin-bottom: 0.5rem;
+            animation: sway 3s ease-in-out infinite;
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-2deg); }
+            50% { transform: rotate(2deg); }
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            color: #c2185b;
+            font-weight: 700;
+            text-shadow: 0 2px 8px rgba(194,24,91,0.15);
+        }
+
+        .subtitle {
+            color: #ad1457;
+            font-size: 1rem;
+            margin-top: 0.4rem;
+            opacity: 0.8;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 40px rgba(194, 24, 91, 0.15);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 520px;
+        }
+
+        .form-group {
+            margin-bottom: 1.4rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #880e4f;
+            margin-bottom: 0.4rem;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #f8bbd0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: inherit;
+            color: #4a0030;
+            background: #fff8fb;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        input[type="text"]:focus, textarea:focus, select:focus {
+            border-color: #e91e8c;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 110px;
+        }
+
+        .preset-messages {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .preset-btn {
+            background: #fce4ec;
+            color: #880e4f;
+            border: 1px solid #f48fb1;
+            border-radius: 20px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .preset-btn:hover {
+            background: #f8bbd0;
+        }
+
+        .color-options {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .color-option {
+            flex: 1;
+            padding: 0.6rem;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: border-color 0.15s, transform 0.15s;
+        }
+
+        .color-option:hover { transform: scale(1.04); }
+        .color-option.selected { border-color: #c2185b; }
+
+        .color-rose { background: linear-gradient(135deg, #fce4ec, #f48fb1); color: #880e4f; }
+        .color-lavender { background: linear-gradient(135deg, #f3e5f5, #ce93d8); color: #4a148c; }
+        .color-peach { background: linear-gradient(135deg, #fbe9e7, #ffab91); color: #bf360c; }
+
+        .submit-btn {
+            width: 100%;
+            padding: 0.95rem;
+            background: linear-gradient(135deg, #e91e8c, #c2185b);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: transform 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 16px rgba(194,24,91,0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(194,24,91,0.4);
+        }
+
+        .led-hint {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #ad1457;
+            font-size: 0.85rem;
+            opacity: 0.75;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="flowers">🌸🌺🌷</div>
+        <h1>Muttertagsgrüße</h1>
+        <p class="subtitle">Erstelle eine persönliche Karte für deine Mama</p>
+    </div>
+
+    <div class="card">
+        <form id="greetingForm">
+            <div class="form-group">
+                <label for="fromName">Von wem? 💝</label>
+                <input type="text" id="fromName" placeholder="Dein Name" maxlength="40" required>
+            </div>
+
+            <div class="form-group">
+                <label for="toName">An wen? 👩</label>
+                <input type="text" id="toName" placeholder="z.B. Mama, Mutti, Mutter ..." maxlength="40" required>
+            </div>
+
+            <div class="form-group">
+                <label for="message">Deine Nachricht 💌</label>
+                <textarea id="message" placeholder="Schreibe eine persönliche Nachricht ..." maxlength="300" required></textarea>
+                <div class="preset-messages" id="presets">
+                    <button type="button" class="preset-btn" data-text="Ich liebe dich von ganzem Herzen!">❤️ Ich liebe dich</button>
+                    <button type="button" class="preset-btn" data-text="Du bist die beste Mama der Welt!">🌟 Beste Mama</button>
+                    <button type="button" class="preset-btn" data-text="Danke für alles, was du für mich tust!">🙏 Danke für alles</button>
+                    <button type="button" class="preset-btn" data-text="Du machst jeden Tag ein bisschen schöner!">🌸 Jeden Tag schöner</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Farbthema 🎨</label>
+                <div class="color-options">
+                    <div class="color-option color-rose selected" data-theme="rose" onclick="selectTheme(this)">🌸 Rosa</div>
+                    <div class="color-option color-lavender" data-theme="lavender" onclick="selectTheme(this)">💜 Lila</div>
+                    <div class="color-option color-peach" data-theme="peach" onclick="selectTheme(this)">🍑 Pfirsich</div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">💝 Karte erstellen</button>
+        </form>
+
+        <p class="led-hint">✨ Die LED-Leiste leuchtet beim Öffnen der Karte in festlichen Farben auf!</p>
+    </div>
+
+    <script>
+        let selectedTheme = 'rose';
+
+        function selectTheme(el) {
+            document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedTheme = el.dataset.theme;
+        }
+
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const ta = document.getElementById('message');
+                ta.value = btn.dataset.text;
+                ta.focus();
+            });
+        });
+
+        document.getElementById('greetingForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const from = document.getElementById('fromName').value.trim();
+            const to = document.getElementById('toName').value.trim();
+            const message = document.getElementById('message').value.trim();
+            if (!from || !to || !message) return;
+
+            const params = new URLSearchParams({ from, to, message, theme: selectedTheme });
+            window.location.href = '/mothers-day/card?' + params.toString();
+        });
+    </script>
+</body>
+</html>
